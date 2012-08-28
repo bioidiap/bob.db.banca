@@ -18,10 +18,6 @@ class Interface(BaseInterface):
     import pkg_resources  # part of setuptools
     return pkg_resources.require('xbob.db.%s' % self.name())[0].version
   
-  #def files(self):
-  #  # relative to the root of the database python package
-  #  return ('db.sql3',)
-
   def files(self):
 
     from pkg_resources import resource_filename
