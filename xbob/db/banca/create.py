@@ -9,7 +9,6 @@
 import os
 
 from .models import *
-from bob.db.utils import session
 
 def add_files(session, imagedir):
   """Add files (and clients) to the BANCA database."""
@@ -200,7 +199,7 @@ def add_command(subparsers):
       help="If set, I'll first erase the current database")
   parser.add_argument('-v', '--verbose', action='append_const', const=1,
       help="Do SQL operations in a verbose way")
-  parser.add_argument('--imagedir', action='store', metavar='DIR',
+  parser.add_argument('-D', '--imagedir', action='store', metavar='DIR',
       default='/idiap/group/vision/visidiap/databases/banca/english/images_gray',
       help="Change the relative path to the directory containing the images of the BANCA database (defaults to %(default)s)")
   
