@@ -39,6 +39,12 @@ class Database(object):
 
     return self.session is not None
 
+  def assert_validity(self):
+    """Raise a RuntimeError if the database backend is not available"""
+
+    if not self.is_valid():
+      raise RuntimeError, "Database '%s' cannot be found at expected location '%s'. Create it and then try re-connecting using Database.connect()" % (INFO.name(), SQLITE_FILE)
+
   def __group_replace_alias__(self, l):
     """Replace 'dev' by 'g1' and 'eval' by 'g2' in a list of groups, and 
        returns the new list"""
@@ -59,6 +65,18 @@ class Database(object):
       if k not in valid:
         raise RuntimeError, 'Invalid %s "%s". Valid values are %s, or lists/tuples of those' % (obj, k, valid)
     return l
+
+
+  def groups(self):
+    """Returns the names of all registered groups"""
+
+    return ProtocolPurpose.group_choices
+
+  def client_groups(self):
+    """Returns the names of the XM2VTS groups. This is specific to this database which 
+    does not have separate training, development and evaluation sets."""
+
+    return Client.group_choices
 
   def clients(self, protocol=None, groups=None, gender=None, language=None, subworld=None):
     """Returns a set of clients for the specific query by the user.
@@ -88,6 +106,8 @@ class Database(object):
     properties.
     """
 
+    self.assert_validity()
+
     groups = self.__group_replace_alias__(groups)
     VALID_GROUPS = ('g1', 'g2', 'world')
     VALID_GENDERS = ('m', 'f')
@@ -108,8 +128,7 @@ class Database(object):
       q = q.filter(Client.gender.in_(gender)).\
             filter(Client.language.in_(language)).\
           order_by(Client.id)
-      for id in [k.id for k in q]: 
-        retval.append(id)
+      retval += list(q)
 
     if 'g1' in groups or 'g2' in groups:
       q = self.session.query(Client).filter(Client.sgroup != 'world').\
@@ -117,8 +136,7 @@ class Database(object):
             filter(Client.gender.in_(gender)).\
             filter(Client.language.in_(language)).\
             order_by(Client.id)
-      for id in [k.id for k in q]: 
-        retval.append(id)
+      retval += list(q)
 
     return retval
 
@@ -224,6 +242,11 @@ class Database(object):
 
     return self.zclients(protocol, groups)
 
+  def has_client_id(self, id):
+    """Returns True if we have a client with a certain integer identifier"""
+
+    self.assert_validity()
+    return self.session.query(Client).filter(Client.id==id).count() != 0
 
   def get_client_id_from_model_id(self, model_id):
     """Returns the client_id attached to the given model_id
@@ -248,42 +271,6 @@ class Database(object):
     Returns: The client_id attached to the given T-Norm model_id
     """
     return model_id
-
-  def get_client_id_from_file_id(self, file_id):
-    """Returns the client_id (real client id) attached to the given file_id
-    
-    Keyword Parameters:
-
-    file_id
-      The file_id to consider
-
-    Returns: The client_id attached to the given file_id
-    """
-    q = self.session.query(File).\
-          filter(File.id == file_id)
-    if q.count() !=1:
-      #throw exception?
-      return None
-    else:
-      return q.first().real_id
-
-  def get_internal_path_from_file_id(self, file_id):
-    """Returns the unique "internal path" attached to the given file_id
-    
-    Keyword Parameters:
-
-    file_id
-      The file_id to consider
-
-    Returns: The internal path attached to the given file_id
-    """
-    q = self.session.query(File).\
-          filter(File.id == file_id)
-    if q.count() !=1:
-      #throw exception?
-      return None
-    else:
-      return q.first().path
 
   def objects(self, directory=None, extension=None, protocol=None,
       purposes=None, model_ids=None, groups=None, classes=None, 
@@ -313,10 +300,9 @@ class Database(object):
       the model_ids is performed.
 
     groups
-      One of the groups ("g1", "g2", "world") or a tuple with several of them. 
+      One of the groups ("dev", "eval", "world") or a tuple with several of them. 
       If 'None' is given (this is the default), it is considered the same as a 
       tuple with all possible values.
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
 
     classes
       The classes (types of accesses) to be retrieved ('client', 'impostor') 
@@ -353,10 +339,11 @@ class Database(object):
       if directory: return os.path.join(directory, stem + extension)
       return stem + extension
 
-    groups = self.__group_replace_alias__(groups)
+    self.assert_validity()
+
     VALID_PROTOCOLS = ('Mc', 'Md', 'Ma', 'Ud', 'Ua', 'P', 'G')
     VALID_PURPOSES = ('enrol', 'probe')
-    VALID_GROUPS = ('g1', 'g2', 'world')
+    VALID_GROUPS = ('dev', 'eval', 'world')
     VALID_LANGUAGES = ('en', 'fr', 'sp')
     VALID_CLASSES = ('client', 'impostor')
     VALID_SUBWORLDS = ('onethird', 'twothirds')
@@ -368,63 +355,52 @@ class Database(object):
     classes = self.__check_validity__(classes, "class", VALID_CLASSES)
     subworld = self.__check_validity__(subworld, "subworld", VALID_SUBWORLDS)
 
-    retval = {}
+    retval = []
 
     if(isinstance(model_ids,str)):
       model_ids = (model_ids,)
     
     if 'world' in groups:
+      q = self.session.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol)
       if len(subworld) == 1:
-        q = self.session.query(File).join(Client).join(Subworld).filter(Subworld.name.in_(subworld))
-      else:
-        q = self.session.query(File).join(Client)
+        q = q.join(Subworld).filter(Subworld.name.in_(subworld))
       q = q.filter(Client.sgroup == 'world').\
+            filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup == 'world')).\
             filter(Client.language.in_(languages))
       if model_ids:
-        q = q.filter(File.real_id.in_(model_ids))
-      q = q.order_by(File.real_id, File.session_id, File.claimed_id, File.shot) 
-      for k in q:
-        retval[k.id] = (make_path(k.path, directory, extension), k.claimed_id, k.claimed_id, k.real_id, k.path)
+        q = q.filter(Client.id.in_(model_ids))
+      q = q.order_by(File.real_id, File.session_id, File.claimed_id, File.shot_id)
+      retval += list(q)
     
-    if ('g1' in groups or 'g2' in groups):
+    if ('dev' in groups or 'eval' in groups):
       if('enrol' in purposes):
-        q = self.session.query(File).join(Client).join(Session).join(Protocol).\
-              filter(File.claimed_id == File.real_id).\
-              filter(Client.sgroup.in_(groups)).\
-              filter(Client.language.in_(languages)).\
-              filter(Protocol.name.in_(protocol)).\
-              filter(Protocol.purpose == 'enrol')
+        q = self.session.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol).\
+              filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup.in_(groups), ProtocolPurpose.purpose == 'enrol'))
         if model_ids:
-          q = q.filter(File.claimed_id.in_(model_ids))
-        q = q.order_by(File.claimed_id, File.session_id, File.real_id, File.shot)
-        for k in q:
-          retval[k.id] = (make_path(k.path, directory, extension), k.claimed_id, k.claimed_id, k.real_id, k.path)
+          q = q.filter(Client.id.in_(model_ids))
+        q = q.order_by(File.real_id, File.session_id, File.claimed_id, File.shot_id)
+        retval += list(q)
+
       if('probe' in purposes):
         if('client' in classes):
-          q = self.session.query(File).join(Client).join(Session).join(Protocol).\
-                filter(File.claimed_id == File.real_id).\
-                filter(Client.sgroup.in_(groups)).\
-                filter(Client.language.in_(languages)).\
-                filter(Protocol.name.in_(protocol)).\
-                filter(Protocol.purpose == 'probe')
+          q = self.session.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol).\
+                filter(File.real_id == File.claimed_id).\
+                filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup.in_(groups), ProtocolPurpose.purpose == 'probe'))
           if model_ids:
-            q = q.filter(File.claimed_id.in_(model_ids))
-          q = q.order_by(File.claimed_id, File.session_id, File.real_id, File.shot)
-          for k in q:
-            retval[k.id] = (make_path(k.path, directory, extension), k.claimed_id, k.claimed_id, k.real_id, k.path)
-        if('impostor' in classes):
-          q = self.session.query(File).join(Client).join(Session).join(Protocol).\
-                filter(File.claimed_id != File.real_id).\
-                filter(Client.sgroup.in_(groups)).\
-                filter(Client.language.in_(languages)).\
-                filter(Protocol.name.in_(protocol)).\
-                filter(or_(Protocol.purpose == 'probe', Protocol.purpose == 'probeImpostor'))
-          if model_ids:
-            q = q.filter(File.claimed_id.in_(model_ids))
-          for k in q:
-            retval[k.id] = (make_path(k.path, directory, extension), k.claimed_id, k.claimed_id, k.real_id, k.path)
+            q = q.filter(Client.id.in_(model_ids))
+          q = q.order_by(File.real_id, File.session_id, File.claimed_id, File.shot_id)
+          retval += list(q)
 
-    return retval
+        if('impostor' in classes):
+          q = self.session.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol).\
+                filter(File.real_id != File.claimed_id).\
+                filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup.in_(groups), ProtocolPurpose.purpose == 'probe'))
+          if model_ids:
+            q = q.filter(File.claimed_id.in_(model_ids))
+          q = q.order_by(File.real_id, File.session_id, File.claimed_id, File.shot_id)
+          retval += list(q)
+    
+    return list(set(retval)) # To remove duplicates
 
   def files(self, directory=None, extension=None, protocol=None,
       purposes=None, model_ids=None, groups=None, classes=None, 
@@ -587,7 +563,7 @@ class Database(object):
     numbers if you wish to save processing results later on.
     """
 
-    retval = {}
+    retval = []
     d = self.tobjects(directory, extension, protocol, model_ids, groups, languages)
     for k in d: retval[k] = d[k][0]
 

@@ -10,10 +10,10 @@ import os
 
 from .models import *
 
-def add_files(session, imagedir):
+def add_files(session, imagedir, verbose):
   """Add files (and clients) to the BANCA database."""
  
-  def add_file(session, filename, client_dict):
+  def add_file(session, filename, client_dict, verbose):
     """Parse a single filename and add it to the list.
        Also add a client entry if not already in the database."""
 
@@ -24,51 +24,36 @@ def add_files(session, imagedir):
       session.add(Client(int(v[0]), v[1], v[2], v[5]))
       client_dict[v[0]] = True
     session_id = int(v[3].split('s')[1])
+    if verbose: print "Adding file '%s'..." %(os.path.basename(filename).split('.')[0], )
     session.add(File(int(v[0]), os.path.basename(filename).split('.')[0], v[4], v[6], session_id))
   
   file_list = os.listdir(imagedir)
   client_dict = {} 
   for filename in file_list:
-    add_file(session, os.path.join(imagedir, filename), client_dict)
+    add_file(session, os.path.join(imagedir, filename), client_dict, verbose)
 
-def add_subworlds(session):
+def add_subworlds(session, verbose):
   """Adds splits in the world set, based on the client ids"""
-  # one third
-  session.add(Subworld("onethird", 9003))
-  session.add(Subworld("onethird", 9005))
-  session.add(Subworld("onethird", 9027))
-  session.add(Subworld("onethird", 9033))
-  session.add(Subworld("onethird", 9035))
-  session.add(Subworld("onethird", 9043))
-  session.add(Subworld("onethird", 9049))
-  session.add(Subworld("onethird", 9053))
-  session.add(Subworld("onethird", 9055))
-  session.add(Subworld("onethird", 9057))
-  
-  # two thirds
-  session.add(Subworld("twothirds", 9001))
-  session.add(Subworld("twothirds", 9007))
-  session.add(Subworld("twothirds", 9009))
-  session.add(Subworld("twothirds", 9011))
-  session.add(Subworld("twothirds", 9013))
-  session.add(Subworld("twothirds", 9015))
-  session.add(Subworld("twothirds", 9017))
-  session.add(Subworld("twothirds", 9019))
-  session.add(Subworld("twothirds", 9021))
-  session.add(Subworld("twothirds", 9023))
-  session.add(Subworld("twothirds", 9025))
-  session.add(Subworld("twothirds", 9029))
-  session.add(Subworld("twothirds", 9031))
-  session.add(Subworld("twothirds", 9037))
-  session.add(Subworld("twothirds", 9039))
-  session.add(Subworld("twothirds", 9041))
-  session.add(Subworld("twothirds", 9045))
-  session.add(Subworld("twothirds", 9047))
-  session.add(Subworld("twothirds", 9051))
-  session.add(Subworld("twothirds", 9059))
 
-def add_sessions(session):
-  """Adds relations between sessions and scenarios"""
+  # one third and two thirds
+  snames = ["onethird", "twothirds"]
+  slist = [ [9003, 9005, 9027, 9033, 9035, 9043, 9049, 9053, 9055, 9057],
+            [9001, 9007, 9009, 9011, 9013, 9015, 9017, 9019, 9021, 9023, 
+             9025, 9029, 9031, 9037, 9039, 9041, 9045, 9047, 9051, 9059] ] 
+  for k in range(len(snames)):
+    if verbose: print "Adding subworld '%s'" %(snames[k], )
+    su = Subworld(snames[k])
+    session.add(su)
+    session.flush()
+    session.refresh(su)
+    l = slist[k]
+    for c_id in l:
+      if verbose: print "Adding client '%d' to subworld '%s'..." %(c_id, snames[k])
+      su.clients.append(session.query(Client).filter(Client.id == c_id).first())
+
+"""
+def add_sessions(session, verbose):
+  ""Adds relations between sessions and scenarios""
 
   for i in range(1,5):
     session.add(Session(i,'controlled'))
@@ -76,75 +61,117 @@ def add_sessions(session):
     session.add(Session(i,'degraded'))
   for i in range(9,13):
     session.add(Session(i,'adverse'))
+"""
 
-def add_protocols(session):
+def add_protocols(session, verbose):
   """Adds protocols"""
+
+  # 1. DEFINITIONS
+  # Numbers in the lists correspond to session identifiers
+  protocol_definitions = {}
+ 
   # Protocol Mc
-  session.add(Protocol(1, 'Mc', 'enrol'))
-  session.add(Protocol(1, 'Mc', 'probeImpostor'))
-  session.add(Protocol(2, 'Mc', 'probe'))
-  session.add(Protocol(3, 'Mc', 'probe'))
-  session.add(Protocol(4, 'Mc', 'probe'))
-  
+  enrol = [1]
+  probe_c = [2, 3, 4]
+  probe_i = [1, 2, 3, 4]
+  protocol_definitions['Mc'] = [enrol, probe_c, probe_i]
+
   # Protocol Md
-  session.add(Protocol(5, 'Md', 'enrol'))
-  session.add(Protocol(5, 'Md', 'probeImpostor'))
-  session.add(Protocol(6, 'Md', 'probe'))
-  session.add(Protocol(7, 'Md', 'probe'))
-  session.add(Protocol(8, 'Md', 'probe'))
+  enrol = [5]
+  probe_c = [6, 7, 8]
+  probe_i = [5, 6, 7, 8]
+  protocol_definitions['Md'] = [enrol, probe_c, probe_i]
   
   # Protocol Ma
-  session.add(Protocol(9, 'Ma', 'enrol'))
-  session.add(Protocol(9, 'Ma', 'probeImpostor'))
-  session.add(Protocol(10, 'Ma', 'probe'))
-  session.add(Protocol(11, 'Ma', 'probe'))
-  session.add(Protocol(12, 'Ma', 'probe'))
+  enrol = [9]
+  probe_c = [10, 11, 12]
+  probe_i = [9, 10, 11, 12]
+  protocol_definitions['Ma'] = [enrol, probe_c, probe_i]
   
   # Protocol Ud
-  session.add(Protocol(1, 'Ud', 'enrol'))
-  session.add(Protocol(5, 'Ud', 'probeImpostor'))
-  session.add(Protocol(6, 'Ud', 'probe'))
-  session.add(Protocol(7, 'Ud', 'probe'))
-  session.add(Protocol(8, 'Ud', 'probe'))
+  enrol = [1]
+  probe_c = [6, 7, 8]
+  probe_i = [5, 6, 7, 8]
+  protocol_definitions['Ud'] = [enrol, probe_c, probe_i]
   
-  # Protocol Ma
-  session.add(Protocol(1, 'Ua', 'enrol'))
-  session.add(Protocol(9, 'Ua', 'probeImpostor'))
-  session.add(Protocol(10, 'Ua', 'probe'))
-  session.add(Protocol(11, 'Ua', 'probe'))
-  session.add(Protocol(12, 'Ua', 'probe'))
+  # Protocol Ua
+  enrol = [1]
+  probe_c = [10, 11, 12]
+  probe_i = [9, 10, 11, 12]
+  protocol_definitions['Ua'] = [enrol, probe_c, probe_i]
   
   # Protocol P
-  session.add(Protocol(1, 'P', 'enrol'))
-  session.add(Protocol(1, 'P', 'probeImpostor'))
-  session.add(Protocol(2, 'P', 'probe'))
-  session.add(Protocol(3, 'P', 'probe'))
-  session.add(Protocol(4, 'P', 'probe'))
-  session.add(Protocol(5, 'P', 'probeImpostor'))
-  session.add(Protocol(6, 'P', 'probe'))
-  session.add(Protocol(7, 'P', 'probe'))
-  session.add(Protocol(8, 'P', 'probe'))
-  session.add(Protocol(9, 'P', 'probeImpostor'))
-  session.add(Protocol(10, 'P', 'probe'))
-  session.add(Protocol(11, 'P', 'probe'))
-  session.add(Protocol(12, 'P', 'probe'))
+  enrol = [1]
+  probe_c = [2, 3, 4, 6, 7, 8, 10, 11, 12]
+  probe_i = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  protocol_definitions['P'] = [enrol, probe_c, probe_i]
   
   # Protocol G
-  session.add(Protocol(1, 'G', 'enrol'))
-  session.add(Protocol(5, 'G', 'enrol'))
-  session.add(Protocol(9, 'G', 'enrol'))
-  session.add(Protocol(1, 'G', 'probeImpostor'))
-  session.add(Protocol(2, 'G', 'probe'))
-  session.add(Protocol(3, 'G', 'probe'))
-  session.add(Protocol(4, 'G', 'probe'))
-  session.add(Protocol(5, 'G', 'probeImpostor'))
-  session.add(Protocol(6, 'G', 'probe'))
-  session.add(Protocol(7, 'G', 'probe'))
-  session.add(Protocol(8, 'G', 'probe'))
-  session.add(Protocol(9, 'G', 'probeImpostor'))
-  session.add(Protocol(10, 'G', 'probe'))
-  session.add(Protocol(11, 'G', 'probe'))
-  session.add(Protocol(12, 'G', 'probe'))
+  enrol = [1, 5, 9]
+  probe_c = [2, 3, 4, 6, 7, 8, 10, 11, 12]
+  probe_i = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+  protocol_definitions['G'] = [enrol, probe_c, probe_i]
+   
+  # 2. ADDITIONS TO THE SQL DATABASE
+  protocolPurpose_list = [('world', 'train'), ('dev', 'enrol'), ('dev', 'probe'), ('eval', 'enrol'), ('eval', 'probe')]
+  for proto in protocol_definitions:
+    p = Protocol(proto)
+    # Add protocol
+    if verbose: print "Adding protocol %s..." % (proto)
+    session.add(p)
+    session.flush()
+    session.refresh(p)
+
+    # Add protocol purposes
+    for key in range(len(protocolPurpose_list)):
+      purpose = protocolPurpose_list[key]
+      pu = ProtocolPurpose(p.id, purpose[0], purpose[1])
+      if verbose: print "  Adding protocol purpose ('%s','%s')..." % (purpose[0], purpose[1])
+      session.add(pu)
+      session.flush()
+      session.refresh(pu)
+
+       # Add files attached with this protocol purpose
+      client_group = ""
+      if(key == 0): client_group = "world"
+      elif(key == 1 or key == 2): client_group = "g1"
+      elif(key == 3 or key == 4): client_group = "g2"
+      session_list = []
+      session_list_i = []
+      if(key == 1 or key == 3): 
+        session_list = protocol_definitions[proto][0]
+      elif(key == 2): 
+        session_list = protocol_definitions[proto][1]
+        session_list_i = protocol_definitions[proto][2]
+      elif(key == 4): 
+        session_list = protocol_definitions[proto][1]
+        session_list_i = protocol_definitions[proto][2]
+
+      # Adds 'regular' files (i.e. 'world', 'enrol', 'probe client')
+      if not session_list:
+        q = session.query(File).join(Client).filter(Client.sgroup == client_group).\
+              order_by(File.id)
+        for k in q:
+          if verbose: print "    Adding protocol file '%s'..." % (k.path)
+          pu.files.append(k)
+      else:
+        for sid in session_list:
+          q = session.query(File).join(Client).filter(Client.sgroup == client_group).\
+                filter(and_(File.session_id == sid, File.real_id == File.claimed_id)).\
+                order_by(File.id)
+          for k in q:
+            if verbose: print "    Adding protocol file '%s'..." % (k.path)
+            pu.files.append(k)
+
+      # Adds impostors if required
+      if session_list_i:
+        for sid in session_list_i:
+          q = session.query(File).join(Client).filter(Client.sgroup == client_group).\
+                filter(and_(File.session_id == sid, File.real_id != File.claimed_id)).\
+                order_by(File.id)
+          for k in q:
+            if verbose: print "    Adding protocol file '%s'..." % (k.path)
+            pu.files.append(k)
 
 
 def create_tables(args):
@@ -153,11 +180,7 @@ def create_tables(args):
   from bob.db.utils import create_engine_try_nolock
 
   engine = create_engine_try_nolock(args.type, args.files[0], echo=(args.verbose >= 2))
-  File.metadata.create_all(engine)
-  Client.metadata.create_all(engine)
-  Subworld.metadata.create_all(engine)
-  Session.metadata.create_all(engine)
-  Protocol.metadata.create_all(engine)
+  Base.metadata.create_all(engine)
 
 # Driver API
 # ==========
@@ -180,10 +203,10 @@ def create(args):
   # the real work...
   create_tables(args)
   s = session_try_nolock(args.type, args.files[0], echo=(args.verbose >= 2))
-  add_files(s, args.imagedir)
-  add_subworlds(s)
-  add_sessions(s)
-  add_protocols(s)
+  add_files(s, args.imagedir, args.verbose)
+  add_subworlds(s, args.verbose)
+  #add_sessions(s, args.verbose)
+  add_protocols(s, args.verbose)
   s.commit()
   s.close()
 
