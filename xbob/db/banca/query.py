@@ -294,18 +294,11 @@ class Database(object):
     """
     return tmodel_id
 
-  def objects(self, directory=None, extension=None, protocol=None,
-      purposes=None, model_ids=None, groups=None, classes=None, 
-      languages=None, subworld=None):
+  def objects(self, protocol=None, purposes=None, model_ids=None, groups=None, 
+      classes=None, languages=None, subworld=None):
     """Returns a set of Files for the specific query by the user.
 
     Keyword Parameters:
-
-    directory
-      A directory name that will be prepended to the final filepath returned
-
-    extension
-      A filename extension that will be appended to the final filepath returned
 
     protocol
       One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
@@ -411,18 +404,11 @@ class Database(object):
     
     return list(set(retval)) # To remove duplicates
 
-  def tobjects(self, directory=None, extension=None, protocol=None,
-      model_ids=None, groups=None, languages=None):
+  def tobjects(self, protocol=None, model_ids=None, groups=None, languages=None):
     """Returns a set of Files for enrolling T-norm models for score 
        normalization.
 
     Keyword Parameters:
-
-    directory
-      A directory name that will be prepended to the final filepath returned
-
-    extension
-      A filename extension that will be appended to the final filepath returned
 
     protocol
       One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
@@ -454,17 +440,10 @@ class Database(object):
       tgroups.append('dev')
     return self.objects(directory, extension, protocol, 'enrol', model_ids, tgroups, 'client', languages)
 
-  def zobjects(self, directory=None, extension=None, protocol=None,
-      model_ids=None, groups=None, languages=None):
+  def zobjects(self, protocol=None, model_ids=None, groups=None, languages=None):
     """Returns a set of Files to perform Z-norm score normalization.
 
     Keyword Parameters:
-
-    directory
-      A directory name that will be prepended to the final filepath returned
-
-    extension
-      A filename extension that will be appended to the final filepath returned
 
     protocol
       One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').

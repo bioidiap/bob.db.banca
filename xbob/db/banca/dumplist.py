@@ -18,8 +18,6 @@ def dumplist(args):
   db = Database()
 
   r = db.objects(
-      directory=args.directory,
-      extension=args.extension,
       protocol=args.protocol,
       purposes=args.purposes,
       #model_ids=args.model_ids,
