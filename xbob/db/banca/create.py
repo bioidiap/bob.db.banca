@@ -51,18 +51,6 @@ def add_subworlds(session, verbose):
       if verbose: print "Adding client '%d' to subworld '%s'..." %(c_id, snames[k])
       su.clients.append(session.query(Client).filter(Client.id == c_id).first())
 
-"""
-def add_sessions(session, verbose):
-  ""Adds relations between sessions and scenarios""
-
-  for i in range(1,5):
-    session.add(Session(i,'controlled'))
-  for i in range(5,9):
-    session.add(Session(i,'degraded'))
-  for i in range(9,13):
-    session.add(Session(i,'adverse'))
-"""
-
 def add_protocols(session, verbose):
   """Adds protocols"""
 
@@ -205,7 +193,6 @@ def create(args):
   s = session_try_nolock(args.type, args.files[0], echo=(args.verbose >= 2))
   add_files(s, args.imagedir, args.verbose)
   add_subworlds(s, args.verbose)
-  #add_sessions(s, args.verbose)
   add_protocols(s, args.verbose)
   s.commit()
   s.close()

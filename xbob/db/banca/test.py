@@ -36,7 +36,7 @@ class BancaDatabaseTest(unittest.TestCase):
     
     from bob.db.script.dbmanage import main
 
-    self.assertEqual(main('banca dumplist --protocol=P --classes=client --groups=g1 --purposes=enrol --self-test'.split()), 0)
+    self.assertEqual(main('banca dumplist --protocol=P --classes=client --groups=dev --purposes=enrol --self-test'.split()), 0)
 
   def test03_manage_checkfiles(self):
 
