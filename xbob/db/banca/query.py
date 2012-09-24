@@ -57,15 +57,15 @@ class Database(object):
       else: l2.append(val)
     return tuple(l2)
 
-  def __check_validity__(self, l, obj, valid):
+  def __check_validity__(self, l, obj, valid, default):
     """Checks validity of user input data against a set of valid values"""
-    if not l: return valid
-    elif isinstance(l, str): return self.__check_validity__((l,), obj, valid)
+    if not l: return default
+    elif not isinstance(l, (tuple,list)): 
+      return self.__check_validity__((l,), obj, valid, default)
     for k in l:
       if k not in valid:
         raise RuntimeError, 'Invalid %s "%s". Valid values are %s, or lists/tuples of those' % (obj, k, valid)
     return l
-
 
   def groups(self):
     """Returns the names of all registered groups"""
@@ -78,45 +78,75 @@ class Database(object):
 
     return Client.group_choices
 
+  def genders(self):
+    """Returns the list of genders: 'm' for male and 'f' for female"""
+
+    return Client.gender_choices
+
+  def languages(self):
+    """Returns the list of languages"""
+  
+    return Client.language_choices
+
+  def subworld_names(self):
+    """Returns all registered subworld names"""
+
+    self.assert_validity()
+    l = self.subworlds()
+    retval = [str(k.name) for k in l]
+    return retval
+
+  def subworlds(self):
+    """Returns the list of subworlds"""
+
+    self.assert_validity()
+
+    return list(self.session.query(Subworld))
+
+  def has_subworld(self, name):
+    """Tells if a certain subworld is available"""
+
+    self.assert_validity()
+    return self.session.query(Subworld).filter(Subworld.name==name).count() != 0
+
   def clients(self, protocol=None, groups=None, gender=None, language=None, subworld=None):
     """Returns a set of clients for the specific query by the user.
 
     Keyword Parameters:
 
     protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua")
+      One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
 
     groups
-      The groups to which the clients belong ("g1", "g2", "world").
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
+      The groups to which the clients belong ('g1', 'g2', 'world').
+      Note that 'dev' is an alias to 'g1' and 'eval' an alias to 'g2'
 
     gender
-      The genders to which the clients belong ("f", "m")
+      The gender to which the clients belong ('f', 'm')
 
     language
       TODO: only English is currently supported
-      The language spoken by the clients ("en",)
+      The language spoken by the clients ('en',)
 
     subworld
-      Specify a split of the world data ("onethird", "twothirds", "")
-      In order to be considered, "world" should be in groups and only one 
+      Specify a split of the world data ('onethird', 'twothirds')
+      In order to be considered, 'world' should be in groups and only one 
       split should be specified. 
 
-    Returns: A list containing all the client ids which have the given
-    properties.
+    Returns: A list containing all the clients which have the given properties.
     """
 
     self.assert_validity()
 
     groups = self.__group_replace_alias__(groups)
-    VALID_GROUPS = ('g1', 'g2', 'world')
-    VALID_GENDERS = ('m', 'f')
-    VALID_LANGUAGES = ('en',)
-    VALID_SUBWORLDS = ('onethird', 'twothirds')
-    groups = self.__check_validity__(groups, "group", VALID_GROUPS)
-    gender = self.__check_validity__(gender, "gender", VALID_GENDERS)
-    language = self.__check_validity__(language, "language", VALID_LANGUAGES)
-    subworld = self.__check_validity__(subworld, "subworld", VALID_SUBWORLDS)
+    VALID_GROUPS = self.client_groups()
+    VALID_GENDERS = self.genders()
+    VALID_LANGUAGES = self.languages()
+    VALID_SUBWORLDS = self.subworld_names()
+    groups = self.__check_validity__(groups, "group", VALID_GROUPS, VALID_GROUPS)
+    gender = self.__check_validity__(gender, "gender", VALID_GENDERS, VALID_GENDERS)
+    language = self.__check_validity__(language, "language", VALID_LANGUAGES, VALID_LANGUAGES)
+    subworld = self.__check_validity__(subworld, "subworld", VALID_SUBWORLDS, VALID_SUBWORLDS)
 
     retval = []
     # List of the clients
@@ -146,18 +176,19 @@ class Database(object):
     Keyword Parameters:
 
     protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua").
+      One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
     
     groups
-      The groups to which the clients belong ("g1", "g2").
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
+      The groups to which the clients belong ('g1', 'g2').
+      Note that 'dev' is an alias to 'g1' and 'eval' an alias to 'g2'
 
-    Returns: A list containing all the model ids belonging to the given group.
+    Returns: A list containing all the T-norm clients which have the given properties.
     """
 
     groups = self.__group_replace_alias__(groups)
     VALID_GROUPS = ('g1', 'g2')
-    groups = self.__check_validity__(groups, "group", VALID_GROUPS)
+    groups = self.__check_validity__(groups, "group", VALID_GROUPS, VALID_GROUPS)
+    # g2 clients are used for normalizing g1 ones, etc.
     tgroups = []
     if 'g1' in groups:
       tgroups.append('g2')
@@ -171,18 +202,19 @@ class Database(object):
     Keyword Parameters:
 
     protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua").
+      One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
     
     groups
-      The groups to which the clients belong ("g1", "g2").
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
+      The groups to which the clients belong ('g1', 'g2').
+      Note that 'dev' is an alias to 'g1' and 'eval' an alias to 'g2'
 
-    Returns: A list containing all the model ids belonging to the given group.
+    Returns: A list containing all the Z-norm clients which have the given properties.
     """
 
     groups = self.__group_replace_alias__(groups)
     VALID_GROUPS = ('g1', 'g2')
     groups = self.__check_validity__(groups, "group", VALID_GROUPS)
+    # g2 clients are used for normalizing g1 ones, etc.
     zgroups = []
     if 'g1' in groups:
       zgroups.append('g2')
@@ -197,13 +229,13 @@ class Database(object):
     Keyword Parameters:
 
     protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua").
+      One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
     
     groups
-      The groups to which the subjects attached to the models belong ("g1", "g2", "world")
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
+      The groups to which the subjects attached to the models belong ('g1', 'g2', 'world')
+      Note that 'dev' is an alias to 'g1' and 'eval' an alias to 'g2'
 
-    Returns: A list containing all the model ids belonging to the given group.
+    Returns: A list containing all the models which have the given properties.
     """
 
     return self.clients(protocol, groups)
@@ -214,39 +246,29 @@ class Database(object):
     Keyword Parameters:
 
     protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua").
+      One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
     
     groups
-      The groups to which the clients belong ("g1", "g2").
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
+      The groups to which the clients belong ('g1', 'g2').
+      Note that 'dev' is an alias to 'g1' and 'eval' an alias to 'g2'
 
-    Returns: A list containing all the model ids belonging to the given group.
+    Returns: A list containing all the Z-norm models which have the given properties.
     """
 
     return self.tclients(protocol, groups)
-
-  def zmodels(self, protocol=None, groups=None):
-    """Returns a set of Z-Norm models for the specific query by the user.
-
-    Keyword Parameters:
-
-    protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua").
-    
-    groups
-      The groups to which the clients belong ("g1", "g2").
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
-
-    Returns: A list containing all the model ids belonging to the given group.
-    """
-
-    return self.zclients(protocol, groups)
 
   def has_client_id(self, id):
     """Returns True if we have a client with a certain integer identifier"""
 
     self.assert_validity()
     return self.session.query(Client).filter(Client.id==id).count() != 0
+
+  def client(self, id):
+    """Returns the client object in the database given a certain id. Raises
+    an error if that does not exist."""
+
+    self.assert_validity()
+    return self.session.query(Client).filter(Client.id==id).one()
 
   def get_client_id_from_model_id(self, model_id):
     """Returns the client_id attached to the given model_id
@@ -260,22 +282,22 @@ class Database(object):
     """
     return model_id
 
-  def get_client_id_from_tmodel_id(self, model_id):
+  def get_client_id_from_tmodel_id(self, tmodel_id):
     """Returns the client_id attached to the given T-Norm model_id
     
     Keyword Parameters:
 
-    model_id
-      The model_id to consider
+    tmodel_id
+      The tmodel_id to consider
 
     Returns: The client_id attached to the given T-Norm model_id
     """
-    return model_id
+    return tmodel_id
 
   def objects(self, directory=None, extension=None, protocol=None,
       purposes=None, model_ids=None, groups=None, classes=None, 
       languages=None, subworld=None):
-    """Returns a set of filenames for the specific query by the user.
+    """Returns a set of Files for the specific query by the user.
 
     Keyword Parameters:
 
@@ -286,10 +308,10 @@ class Database(object):
       A filename extension that will be appended to the final filepath returned
 
     protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua").
+      One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
 
     purposes
-      The purposes required to be retrieved ("enrol", "probe") or a tuple
+      The purposes required to be retrieved ('enrol', 'probe', 'train') or a tuple
       with several of them. If 'None' is given (this is the default), it is 
       considered the same as a tuple with all possible values. This field is
       ignored for the data from the "world" group.
@@ -300,7 +322,7 @@ class Database(object):
       the model_ids is performed.
 
     groups
-      One of the groups ("dev", "eval", "world") or a tuple with several of them. 
+      One of the groups ('dev', 'eval', 'world') or a tuple with several of them. 
       If 'None' is given (this is the default), it is considered the same as a 
       tuple with all possible values.
 
@@ -310,56 +332,43 @@ class Database(object):
       default), it is considered the same as a tuple with all possible values.
 
     languages
-      The language spoken by the clients ("en")
+      The language spoken by the clients ('en')
       TODO: only English is currently supported
       If 'None' is given (this is the default), it is considered the same as a 
       tuple with all possible values.
 
     subworld
-      Specify a split of the world data ("onethird", "twothirds", "")
-      In order to be considered, "world" should be in groups and only one 
+      Specify a split of the world data ('onethird', 'twothirds')
+      In order to be considered, 'world' should be in groups and only one 
       split should be specified. 
 
-    Returns: A dictionary containing:
-
-      * 0: the resolved filenames 
-      * 1: the model id
-      * 2: the claimed id attached to the model
-      * 3: the real id
-      * 4: the "stem" path (basename of the file)
-
-    considering allthe filtering criteria. The keys of the dictionary are 
-    unique identities for each file in the BANCA database. Conserve these 
-    numbers if you wish to save processing results later on.
+    Returns: A list of files which have the given properties.
     """
-
-    def make_path(stem, directory, extension):
-      import os
-      if not extension: extension = ''
-      if directory: return os.path.join(directory, stem + extension)
-      return stem + extension
 
     self.assert_validity()
 
-    VALID_PROTOCOLS = ('Mc', 'Md', 'Ma', 'Ud', 'Ua', 'P', 'G')
-    VALID_PURPOSES = ('enrol', 'probe')
-    VALID_GROUPS = ('dev', 'eval', 'world')
-    VALID_LANGUAGES = ('en', 'fr', 'sp')
+    VALID_PROTOCOLS = self.protocol_names()
+    VALID_PURPOSES = self.purposes()
+    VALID_GROUPS = self.groups()
+    VALID_LANGUAGES = self.languages()
     VALID_CLASSES = ('client', 'impostor')
-    VALID_SUBWORLDS = ('onethird', 'twothirds')
+    VALID_SUBWORLDS = self.subworld_names()
 
-    protocol = self.__check_validity__(protocol, "protocol", VALID_PROTOCOLS)
-    purposes = self.__check_validity__(purposes, "purpose", VALID_PURPOSES)
-    groups = self.__check_validity__(groups, "group", VALID_GROUPS)
-    languages = self.__check_validity__(languages, "language", VALID_LANGUAGES)
-    classes = self.__check_validity__(classes, "class", VALID_CLASSES)
-    subworld = self.__check_validity__(subworld, "subworld", VALID_SUBWORLDS)
+    protocol = self.__check_validity__(protocol, "protocol", VALID_PROTOCOLS, VALID_PROTOCOLS)
+    purposes = self.__check_validity__(purposes, "purpose", VALID_PURPOSES, VALID_PURPOSES)
+    groups = self.__check_validity__(groups, "group", VALID_GROUPS, VALID_GROUPS)
+    languages = self.__check_validity__(languages, "language", VALID_LANGUAGES, VALID_LANGUAGES)
+    classes = self.__check_validity__(classes, "class", VALID_CLASSES, VALID_CLASSES)
+    subworld = self.__check_validity__(subworld, "subworld", VALID_SUBWORLDS, VALID_SUBWORLDS)
 
-    retval = []
-
-    if(isinstance(model_ids,str)):
+    import collections
+    if(model_ids is None):
+      model_ids = ()
+    elif(not isinstance(model_ids,collections.Iterable)):
       model_ids = (model_ids,)
-    
+
+    # Now query the database
+    retval = []
     if 'world' in groups:
       q = self.session.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol)
       if len(subworld) == 1:
@@ -402,72 +411,9 @@ class Database(object):
     
     return list(set(retval)) # To remove duplicates
 
-  def files(self, directory=None, extension=None, protocol=None,
-      purposes=None, model_ids=None, groups=None, classes=None, 
-      languages=None, subworld=None):
-    """Returns a set of filenames for the specific query by the user.
-
-    Keyword Parameters:
-
-    directory
-      A directory name that will be prepended to the final filepath returned
-
-    extension
-      A filename extension that will be appended to the final filepath returned
-
-    protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua").
-
-    purposes
-      The purposes required to be retrieved ("enrol", "probe") or a tuple
-      with several of them. If 'None' is given (this is the default), it is 
-      considered the same as a tuple with all possible values. This field is
-      ignored for the data from the "world" group.
-
-    model_ids
-      Only retrieves the files for the provided list of model ids (claimed 
-      client id).  If 'None' is given (this is the default), no filter over 
-      the model_ids is performed.
-
-    groups
-      One of the groups ("g1", "g2", "world") or a tuple with several of them. 
-      If 'None' is given (this is the default), it is considered the same as a 
-      tuple with all possible values.
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
-
-    classes
-      The classes (types of accesses) to be retrieved ('client', 'impostor') 
-      or a tuple with several of them. If 'None' is given (this is the 
-      default), it is considered the same as a tuple with all possible values.
-
-    languages
-      The language spoken by the clients ("en")
-      TODO: only English is currently supported
-      If 'None' is given (this is the default), it is considered the same as a 
-      tuple with all possible values.
-
-    subworld
-      Specify a split of the world data ("onethird", "twothirds", "")
-      In order to be considered, "world" should be in groups and only one 
-      split should be specified. Clients from other groups ("dev", "eval")
-      will in this case be ignored.
-
-    Returns: A dictionary containing the resolved filenames considering all
-    the filtering criteria. The keys of the dictionary are unique identities 
-    for each file in the BANCA database. Conserve these numbers if you 
-    wish to save processing results later on.
-    """
-
-    retval = {}
-    d = self.objects(directory, extension, protocol, purposes, model_ids, groups, classes, languages, subworld)
-    for k in d: retval[k] = d[k][0]
-
-    return retval
-
-
   def tobjects(self, directory=None, extension=None, protocol=None,
       model_ids=None, groups=None, languages=None):
-    """Returns a set of filenames for enrolling T-norm models for score 
+    """Returns a set of Files for enrolling T-norm models for score 
        normalization.
 
     Keyword Parameters:
@@ -479,7 +425,7 @@ class Database(object):
       A filename extension that will be appended to the final filepath returned
 
     protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua").
+      One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
 
     model_ids
       Only retrieves the files for the provided list of model ids (claimed 
@@ -487,92 +433,30 @@ class Database(object):
       the model_ids is performed.
 
     groups
-      The groups to which the clients belong ("g1", "g2").
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
+      The groups to which the clients belong ('dev', 'eval').
 
     languages
-      The language spoken by the clients ("en")
+      The language spoken by the clients ('en')
       TODO: only English is currently supported
       If 'None' is given (this is the default), it is considered the same as a 
       tuple with all possible values.
 
-    Returns: A dictionary containing:
-
-      * 0: the resolved filenames 
-      * 1: the model id
-      * 2: the claimed id attached to the model
-      * 3: the real id
-      * 4: the "stem" path (basename of the file)
-
-    considering allthe filtering criteria. The keys of the dictionary are 
-    unique identities for each file in the BANCA database. Conserve these 
-    numbers if you wish to save processing results later on.
+    Returns: A list of Files which have the given properties. 
     """
 
-    groups = self.__group_replace_alias__(groups)
-    VALID_GROUPS = ('g1', 'g2')
-    groups = self.__check_validity__(groups, "group", VALID_GROUPS)
+    VALID_GROUPS = ('dev', 'eval')
+    groups = self.__check_validity__(groups, "group", VALID_GROUPS, VALID_GROUPS)
+    # g2 clients are used for normalizing g1 ones, etc.
     tgroups = []
-    if 'g1' in groups:
-      tgroups.append('g2')
-    if 'g2' in groups:
-      tgroups.append('g1')
+    if 'dev' in groups:
+      tgroups.append('eval')
+    if 'eval' in groups:
+      tgroups.append('dev')
     return self.objects(directory, extension, protocol, 'enrol', model_ids, tgroups, 'client', languages)
-
-  def tfiles(self, directory=None, extension=None, protocol=None,
-      model_ids=None, groups=None, languages=None):
-    """Returns a set of filenames for enrolling T-norm models for score 
-       normalization.
-
-    Keyword Parameters:
-
-    directory
-      A directory name that will be prepended to the final filepath returned
-
-    extension
-      A filename extension that will be appended to the final filepath returned
-
-    protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua").
-
-    model_ids
-      Only retrieves the files for the provided list of model ids (claimed 
-      client id).  If 'None' is given (this is the default), no filter over 
-      the model_ids is performed.
-
-    groups
-      The groups to which the clients belong ("g1", "g2").
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
-
-    languages
-      The language spoken by the clients ("en")
-      TODO: only English is currently supported
-      If 'None' is given (this is the default), it is considered the same as a 
-      tuple with all possible values.
-
-    Returns: A dictionary containing:
-
-      * 0: the resolved filenames 
-      * 1: the model id
-      * 2: the claimed id attached to the model
-      * 3: the real id
-      * 4: the "stem" path (basename of the file)
-
-    considering allthe filtering criteria. The keys of the dictionary are 
-    unique identities for each file in the BANCA database. Conserve these 
-    numbers if you wish to save processing results later on.
-    """
-
-    retval = []
-    d = self.tobjects(directory, extension, protocol, model_ids, groups, languages)
-    for k in d: retval[k] = d[k][0]
-
-    return retval
-
 
   def zobjects(self, directory=None, extension=None, protocol=None,
       model_ids=None, groups=None, languages=None):
-    """Returns a set of filenames to perform Z-norm score normalization.
+    """Returns a set of Files to perform Z-norm score normalization.
 
     Keyword Parameters:
 
@@ -583,7 +467,7 @@ class Database(object):
       A filename extension that will be appended to the final filepath returned
 
     protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua").
+      One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
 
     model_ids
       Only retrieves the files for the provided list of model ids (claimed 
@@ -591,182 +475,110 @@ class Database(object):
       the model_ids is performed.
 
     groups
-      The groups to which the clients belong ("g1", "g2").
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
+      The groups to which the clients belong ('dev', 'eval').
 
     languages
-      The language spoken by the clients ("en")
+      The language spoken by the clients ('en')
       TODO: only English is currently supported
       If 'None' is given (this is the default), it is considered the same as a 
       tuple with all possible values.
 
-    Returns: A dictionary containing:
-
-      * 0: the resolved filenames 
-      * 1: the model id
-      * 2: the claimed id attached to the model
-      * 3: the real id
-      * 4: the "stem" path (basename of the file)
-
-    considering allthe filtering criteria. The keys of the dictionary are 
-    unique identities for each file in the BANCA database. Conserve these 
-    numbers if you wish to save processing results later on.
+    Returns: A list of Files which have the given properties.
     """
 
-    def make_path(stem, directory, extension):
-      import os
-      if not extension: extension = ''
-      if directory: return os.path.join(directory, stem + extension)
-      return stem + extension
-
-    groups = self.__group_replace_alias__(groups)
-    VALID_PROTOCOLS = ('Mc', 'Md', 'Ma', 'Ud', 'Ua', 'P', 'G')
-    VALID_GROUPS = ('g1', 'g2')
-    VALID_LANGUAGES = ('en', 'fr', 'sp')
-
-    protocol = self.__check_validity__(protocol, "protocol", VALID_PROTOCOLS)
-    groups = self.__check_validity__(groups, "group", VALID_GROUPS)
-    languages = self.__check_validity__(languages, "language", VALID_LANGUAGES)
+    VALID_GROUPS = ('dev', 'eval')
+    groups = self.__check_validity__(groups, "group", VALID_GROUPS, VALID_GROUPS)
+    # g2 clients are used for normalizing g1 ones, etc.
     zgroups = []
-    if 'g1' in groups:
-      zgroups.append('g2')
-    if 'g2' in groups:
-      zgroups.append('g1')
+    if 'dev' in groups:
+      zgroups.append('eval')
+    if 'eval' in groups:
+      zgroups.append('dev')
+    return self.objects(directory, extension, protocol, 'probe', model_ids, zgroups, None, languages)
 
-    retval = {}
+  def protocol_names(self):
+    """Returns all registered protocol names"""
 
-    if(isinstance(model_ids,str)):
-      model_ids = (model_ids,)
- 
-    # Files used as client probes
-    q = self.session.query(File).join(Client).join(Session).join(Protocol).\
-            filter(File.claimed_id == File.real_id).\
-            filter(Client.sgroup.in_(zgroups)).\
-            filter(Client.language.in_(languages)).\
-            filter(Protocol.name.in_(protocol)).\
-            filter(Protocol.purpose == 'probe')
-    if model_ids:
-      q = q.filter(File.real_id.in_(model_ids))
-    q = q.order_by(File.claimed_id, File.session_id, File.real_id, File.shot)
-    for k in q:
-      retval[k.id] = (make_path(k.path, directory, extension), k.claimed_id, k.claimed_id, k.real_id, k.path)
-
-    # Files used as impostor probes
-    q = self.session.query(File).join(Client).join(Session).join(Protocol).\
-            filter(File.claimed_id != File.real_id).\
-            filter(Client.sgroup.in_(zgroups)).\
-            filter(Client.language.in_(languages)).\
-            filter(Protocol.name.in_(protocol)).\
-            filter(or_(Protocol.purpose == 'probe', Protocol.purpose == 'probeImpostor'))
-    if model_ids:
-      q = q.filter(File.real_id.in_(model_ids))
-    for k in q:
-      retval[k.id] = (make_path(k.path, directory, extension), k.claimed_id, k.claimed_id, k.real_id, k.path)
-
+    self.assert_validity()
+    l = self.protocols()
+    retval = [str(k.name) for k in l]
     return retval
 
-  def zfiles(self, directory=None, extension=None, protocol=None,
-      model_ids=None, groups=None, languages=None):
-    """Returns a set of filenames to perform Z-norm score normalization.
+  def protocols(self):
+    """Returns all registered protocols"""
 
-    Keyword Parameters:
+    self.assert_validity()
+    return list(self.session.query(Protocol))
 
-    directory
-      A directory name that will be prepended to the final filepath returned
+  def has_protocol(self, name):
+    """Tells if a certain protocol is available"""
 
-    extension
-      A filename extension that will be appended to the final filepath returned
+    self.assert_validity()
+    return self.session.query(Protocol).filter(Protocol.name==name).count() != 0
 
-    protocol
-      One of the BANCA protocols ("P", "G", "Mc", "Md", "Ma", "Ud", "Ua").
+  def protocol(self, name):
+    """Returns the protocol object in the database given a certain name. Raises
+    an error if that does not exist."""
 
-    model_ids
-      Only retrieves the files for the provided list of model ids (claimed 
-      client id).  If 'None' is given (this is the default), no filter over 
-      the model_ids is performed.
+    self.assert_validity()
+    return self.session.query(Protocol).filter(Protocol.name==name).one()
 
-    groups
-      The groups to which the clients belong ("g1", "g2").
-      Note that 'dev' is an alias to 'g1' and 'test' an alias to 'g2'
+  def protocol_purposes(self):
+    """Returns all registered protocol purposes"""
 
-    languages
-      The language spoken by the clients ("en")
-      TODO: only English is currently supported
-      If 'None' is given (this is the default), it is considered the same as a 
-      tuple with all possible values.
+    self.assert_validity()
+    return list(self.session.query(ProtocolPurpose))
 
-    Returns: A dictionary containing:
+  def purposes(self):
+    """Returns the list of allowed purposes"""
 
-      * 0: the resolved filenames 
-      * 1: the model id
-      * 2: the claimed id attached to the model
-      * 3: the real id
-      * 4: the "stem" path (basename of the file)
+    return ProtocolPurpose.purpose_choices
 
-    considering allthe filtering criteria. The keys of the dictionary are 
-    unique identities for each file in the BANCA database. Conserve these 
-    numbers if you wish to save processing results later on.
-    """
+  def paths(self, ids, prefix='', suffix=''):
+    """Returns a full file paths considering particular file ids, a given
+    directory and an extension
 
-    retval = {}
-    d = self.zobjects(directory, extension, protocol, model_ids, groups, languages)
-    for k in d: retval[k] = d[k][0]
-
-    return retval
-
-
-  def save_one(self, id, obj, directory, extension):
-    """Saves a single object supporting the bob save() protocol.
-
-    This method will call save() on the the given object using the correct
-    database filename stem for the given id.
-    
     Keyword Parameters:
 
     id
-      The id of the object in the database table "file".
+      The ids of the object in the database table "file". This object should be
+      a python iterable (such as a tuple or list).
 
-    obj
-      The object that needs to be saved, respecting the bob save() protocol.
+    prefix
+      The bit of path to be prepended to the filename stem
 
-    directory
-      This is the base directory to which you want to save the data. The
-      directory is tested for existence and created if it is not there with
-      os.makedirs()
+    suffix
+      The extension determines the suffix that will be appended to the filename
+      stem.
 
-    extension
-      The extension determines the way each of the arrays will be saved.
+    Returns a list (that may be empty) of the fully constructed paths given the
+    file ids.
     """
 
-    import os
-    from bob.io import save
+    self.assert_validity()
 
-    fobj = self.session.query(File).filter_by(id=id).one()
-    fullpath = os.path.join(directory, str(fobj.path) + extension)
-    fulldir = os.path.dirname(fullpath)
-    utils.makedirs_safe(fulldir)
-    save(obj, fullpath)
+    fobj = self.session.query(File).filter(File.id.in_(ids))
+    retval = []
+    for p in ids:
+      retval.extend([k.make_path(prefix, suffix) for k in fobj if k.id == p])
+    return retval
 
-  def save(self, data, directory, extension):
-    """This method takes a dictionary of blitz arrays or bob.database.Array's
-    and saves the data respecting the original arrangement as returned by
-    files().
+  def reverse(self, paths):
+    """Reverses the lookup: from certain stems, returning file ids
 
     Keyword Parameters:
 
-    data
-      A dictionary with two keys 'real' and 'attack', each containing a
-      dictionary mapping file ids from the original database to an object that
-      supports the bob "save()" protocol.
+    paths
+      The filename stems I'll query for. This object should be a python
+      iterable (such as a tuple or list)
 
-    directory
-      This is the base directory to which you want to save the data. The
-      directory is tested for existence and created if it is not there with
-      os.makedirs()
+    Returns a list (that may be empty).
+    """
 
-    extension
-      The extension determines the way each of the arrays will be saved.
-    """    
+    self.assert_validity()
 
-    for key, value in data:
-      self.save_one(key, value, directory, extension)
+    fobj = self.session.query(File).filter(File.path.in_(paths))
+    for p in paths:
+      retval.extend([k.id for k in fobj if k.path == p])
+    return retval
+ 

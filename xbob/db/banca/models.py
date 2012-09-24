@@ -30,11 +30,14 @@ class Client(Base):
   # Key identifier for the client
   id = Column(Integer, primary_key=True)
   # Gender to which the client belongs to
-  gender = Column(Enum('m','f'))
+  gender_choices = ('m','f')
+  gender = Column(Enum(*gender_choices))
   # Group to which the client belongs to
-  sgroup = Column(Enum('g1','g2','world')) # do NOT use group (SQL keyword)
+  group_choices = ('g1','g2','world')
+  sgroup = Column(Enum(*group_choices)) # do NOT use group (SQL keyword)
   # Language spoken by the client
-  language = Column(Enum('en','fr','sp'))
+  language_choices = ('en',)
+  language = Column(Enum(*language_choices))
 
   def __init__(self, id, gender, group, language):
     self.id = id
@@ -43,7 +46,7 @@ class Client(Base):
     self.language = language
 
   def __repr__(self):
-    return "Client('%d', '%s', '%s', '%s')" % (self.id, self.gender, self.sgroup, self.language)
+    return "Client(%d, '%s', '%s', '%s')" % (self.id, self.gender, self.sgroup, self.language)
 
 class Subworld(Base):
   """Database clients belonging to the world group are split in two disjoint subworlds, 
@@ -64,21 +67,6 @@ class Subworld(Base):
 
   def __repr__(self):
     return "Subworld('%s')" % (self.name)
-
-"""
-class Session(Base):
-  __tablename__ = 'session'
-  
-  id = Column(Integer, primary_key=True)
-  scenario = Column(Enum('controlled','degraded','adverse'))
-
-  def __init__(self, id, scenario):
-    self.id = id
-    self.scenario = scenario
-
-  def __repr__(self):
-    return "<Session('%d', '%s')>" % (self.id, self.scenario)
-"""
 
 class File(Base):
   """Generic file container"""
@@ -199,23 +187,3 @@ class ProtocolPurpose(Base):
   def __repr__(self):
     return "ProtocolPurpose('%s', '%s', '%s')" % (self.protocol.name, self.sgroup, self.purpose)
 
-"""
-class Protocol(Base):
-  __tablename__ = 'protocol'
-  
-  id = Column(Integer, primary_key=True)
-  session_id = Column(Integer, ForeignKey('session.id'))
-  name = Column(Enum('P','G','Mc','Md','Ma','Ud','Ua'))
-  purpose = Column(Enum('enrol','probe','probeImpostor'))
-
-  # for python
-  session = relationship("Session", backref=backref("session_protocol"))
-
-  def __init__(self, session_id, name, purpose):
-    self.session_id = session_id
-    self.name = name
-    self.purpose = purpose
-
-  def __repr__(self):
-    return "<Protocol('%d', '%s', '%s')>" % (self.session_id, self.name, self.purpose)
-"""
