@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim: set fileencoding=utf-8 :
 # Laurent El Shafey <Laurent.El-Shafey@idiap.ch>
-# Fri 20 May 17:00:50 2011 
+# Fri 20 May 17:00:50 2011
 
 """This script creates the BANCA database in a single pass.
 """
@@ -12,7 +12,7 @@ from .models import *
 
 def add_files(session, imagedir, verbose):
   """Add files (and clients) to the BANCA database."""
- 
+
   def add_file(session, filename, client_dict, verbose):
     """Parse a single filename and add it to the list.
        Also add a client entry if not already in the database."""
@@ -26,9 +26,9 @@ def add_files(session, imagedir, verbose):
     session_id = int(v[3].split('s')[1])
     if verbose: print "Adding file '%s'..." %(os.path.basename(filename).split('.')[0], )
     session.add(File(int(v[0]), os.path.basename(filename).split('.')[0], v[4], v[6], session_id))
-  
+
   file_list = os.listdir(imagedir)
-  client_dict = {} 
+  client_dict = {}
   for filename in file_list:
     add_file(session, os.path.join(imagedir, filename), client_dict, verbose)
 
@@ -38,8 +38,8 @@ def add_subworlds(session, verbose):
   # one third and two thirds
   snames = ["onethird", "twothirds"]
   slist = [ [9003, 9005, 9027, 9033, 9035, 9043, 9049, 9053, 9055, 9057],
-            [9001, 9007, 9009, 9011, 9013, 9015, 9017, 9019, 9021, 9023, 
-             9025, 9029, 9031, 9037, 9039, 9041, 9045, 9047, 9051, 9059] ] 
+            [9001, 9007, 9009, 9011, 9013, 9015, 9017, 9019, 9021, 9023,
+             9025, 9029, 9031, 9037, 9039, 9041, 9045, 9047, 9051, 9059] ]
   for k in range(len(snames)):
     if verbose: print "Adding subworld '%s'" %(snames[k], )
     su = Subworld(snames[k])
@@ -57,7 +57,7 @@ def add_protocols(session, verbose):
   # 1. DEFINITIONS
   # Numbers in the lists correspond to session identifiers
   protocol_definitions = {}
- 
+
   # Protocol Mc
   enrol = [1]
   probe_c = [2, 3, 4]
@@ -69,37 +69,37 @@ def add_protocols(session, verbose):
   probe_c = [6, 7, 8]
   probe_i = [5, 6, 7, 8]
   protocol_definitions['Md'] = [enrol, probe_c, probe_i]
-  
+
   # Protocol Ma
   enrol = [9]
   probe_c = [10, 11, 12]
   probe_i = [9, 10, 11, 12]
   protocol_definitions['Ma'] = [enrol, probe_c, probe_i]
-  
+
   # Protocol Ud
   enrol = [1]
   probe_c = [6, 7, 8]
   probe_i = [5, 6, 7, 8]
   protocol_definitions['Ud'] = [enrol, probe_c, probe_i]
-  
+
   # Protocol Ua
   enrol = [1]
   probe_c = [10, 11, 12]
   probe_i = [9, 10, 11, 12]
   protocol_definitions['Ua'] = [enrol, probe_c, probe_i]
-  
+
   # Protocol P
   enrol = [1]
   probe_c = [2, 3, 4, 6, 7, 8, 10, 11, 12]
   probe_i = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   protocol_definitions['P'] = [enrol, probe_c, probe_i]
-  
+
   # Protocol G
   enrol = [1, 5, 9]
   probe_c = [2, 3, 4, 6, 7, 8, 10, 11, 12]
   probe_i = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
   protocol_definitions['G'] = [enrol, probe_c, probe_i]
-   
+
   # 2. ADDITIONS TO THE SQL DATABASE
   protocolPurpose_list = [('world', 'train'), ('dev', 'enrol'), ('dev', 'probe'), ('eval', 'enrol'), ('eval', 'probe')]
   for proto in protocol_definitions:
@@ -126,12 +126,12 @@ def add_protocols(session, verbose):
       elif(key == 3 or key == 4): client_group = "g2"
       session_list = []
       session_list_i = []
-      if(key == 1 or key == 3): 
+      if(key == 1 or key == 3):
         session_list = protocol_definitions[proto][0]
-      elif(key == 2): 
+      elif(key == 2):
         session_list = protocol_definitions[proto][1]
         session_list_i = protocol_definitions[proto][2]
-      elif(key == 4): 
+      elif(key == 4):
         session_list = protocol_definitions[proto][1]
         session_list_i = protocol_definitions[proto][2]
 
@@ -145,7 +145,7 @@ def add_protocols(session, verbose):
       else:
         for sid in session_list:
           q = session.query(File).join(Client).filter(Client.sgroup == client_group).\
-                filter(and_(File.session_id == sid, File.real_id == File.claimed_id)).\
+                filter(and_(File.session_id == sid, File.client_id == File.claimed_id)).\
                 order_by(File.id)
           for k in q:
             if verbose: print "    Adding protocol file '%s'..." % (k.path)
@@ -155,7 +155,7 @@ def add_protocols(session, verbose):
       if session_list_i:
         for sid in session_list_i:
           q = session.query(File).join(Client).filter(Client.sgroup == client_group).\
-                filter(and_(File.session_id == sid, File.real_id != File.claimed_id)).\
+                filter(and_(File.session_id == sid, File.client_id != File.claimed_id)).\
                 order_by(File.id)
           for k in q:
             if verbose: print "    Adding protocol file '%s'..." % (k.path)
@@ -180,7 +180,7 @@ def create(args):
 
   dbfile = args.files[0]
 
-  if args.recreate: 
+  if args.recreate:
     if args.verbose and os.path.exists(dbfile):
       print('unlinking %s...' % dbfile)
     if os.path.exists(dbfile): os.unlink(dbfile)
@@ -209,5 +209,5 @@ def add_command(subparsers):
   parser.add_argument('-D', '--imagedir', action='store', metavar='DIR',
       default='/idiap/group/vision/visidiap/databases/banca/english/images_gray',
       help="Change the relative path to the directory containing the images of the BANCA database (defaults to %(default)s)")
-  
+
   parser.set_defaults(func=create) #action

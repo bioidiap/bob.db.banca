@@ -49,16 +49,16 @@ class Client(Base):
     return "Client(%d, '%s', '%s', '%s')" % (self.id, self.gender, self.sgroup, self.language)
 
 class Subworld(Base):
-  """Database clients belonging to the world group are split in two disjoint subworlds, 
+  """Database clients belonging to the world group are split in two disjoint subworlds,
      onethird and twothirds"""
 
   __tablename__ = 'subworld'
-  
+
   # Key identifier for this Subworld object
   id = Column(Integer, primary_key=True)
   # Subworld to which the client belongs to
   name = Column(String(20), unique=True)
-  
+
   # for Python: A direct link to the client
   clients = relationship("Client", secondary=subworld_client_association, backref=backref("subworld", order_by=id))
 
@@ -76,7 +76,7 @@ class File(Base):
   # Key identifier for the file
   id = Column(Integer, primary_key=True)
   # Key identifier of the client associated with this file
-  real_id = Column(Integer, ForeignKey('client.id')) # for SQL
+  client_id = Column(Integer, ForeignKey('client.id')) # for SQL
   # Unique path to this file inside the database
   path = Column(String(100), unique=True)
   # Identifier of the claimed client associated with this file
@@ -89,8 +89,8 @@ class File(Base):
   # For Python: A direct link to the client object that this file belongs to
   real_client = relationship("Client", backref=backref("files", order_by=id))
 
-  def __init__(self, real_id, path, claimed_id, shot_id, session_id):
-    self.real_id = real_id
+  def __init__(self, client_id, path, claimed_id, shot_id, session_id):
+    self.client_id = client_id
     self.path = path
     self.claimed_id = claimed_id
     self.shot_id = shot_id

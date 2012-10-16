@@ -25,7 +25,7 @@ class Database(object):
   def __init__(self):
     # opens a session to the database - keep it open until the end
     self.connect()
-  
+
   def connect(self):
     """Tries connecting or re-connecting to the database"""
     if not os.path.exists(SQLITE_FILE):
@@ -46,7 +46,7 @@ class Database(object):
       raise RuntimeError, "Database '%s' cannot be found at expected location '%s'. Create it and then try re-connecting using Database.connect()" % (INFO.name(), SQLITE_FILE)
 
   def __group_replace_alias__(self, l):
-    """Replace 'dev' by 'g1' and 'eval' by 'g2' in a list of groups, and 
+    """Replace 'dev' by 'g1' and 'eval' by 'g2' in a list of groups, and
        returns the new list"""
     if not l: return l
     elif isinstance(l, str): return self.__group_replace_alias__((l,))
@@ -60,7 +60,7 @@ class Database(object):
   def __check_validity__(self, l, obj, valid, default):
     """Checks validity of user input data against a set of valid values"""
     if not l: return default
-    elif not isinstance(l, (tuple,list)): 
+    elif not isinstance(l, (tuple,list)):
       return self.__check_validity__((l,), obj, valid, default)
     for k in l:
       if k not in valid:
@@ -73,7 +73,7 @@ class Database(object):
     return ProtocolPurpose.group_choices
 
   def client_groups(self):
-    """Returns the names of the XM2VTS groups. This is specific to this database which 
+    """Returns the names of the XM2VTS groups. This is specific to this database which
     does not have separate training, development and evaluation sets."""
 
     return Client.group_choices
@@ -85,7 +85,7 @@ class Database(object):
 
   def languages(self):
     """Returns the list of languages"""
-  
+
     return Client.language_choices
 
   def subworld_names(self):
@@ -130,8 +130,8 @@ class Database(object):
 
     subworld
       Specify a split of the world data ('onethird', 'twothirds')
-      In order to be considered, 'world' should be in groups and only one 
-      split should be specified. 
+      In order to be considered, 'world' should be in groups and only one
+      split should be specified.
 
     Returns: A list containing all the clients which have the given properties.
     """
@@ -177,7 +177,7 @@ class Database(object):
 
     protocol
       One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
-    
+
     groups
       The groups to which the clients belong ('g1', 'g2').
       Note that 'dev' is an alias to 'g1' and 'eval' an alias to 'g2'
@@ -203,7 +203,7 @@ class Database(object):
 
     protocol
       One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
-    
+
     groups
       The groups to which the clients belong ('g1', 'g2').
       Note that 'dev' is an alias to 'g1' and 'eval' an alias to 'g2'
@@ -230,7 +230,7 @@ class Database(object):
 
     protocol
       One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
-    
+
     groups
       The groups to which the subjects attached to the models belong ('g1', 'g2', 'world')
       Note that 'dev' is an alias to 'g1' and 'eval' an alias to 'g2'
@@ -247,7 +247,7 @@ class Database(object):
 
     protocol
       One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
-    
+
     groups
       The groups to which the clients belong ('g1', 'g2').
       Note that 'dev' is an alias to 'g1' and 'eval' an alias to 'g2'
@@ -272,7 +272,7 @@ class Database(object):
 
   def get_client_id_from_model_id(self, model_id):
     """Returns the client_id attached to the given model_id
-    
+
     Keyword Parameters:
 
     model_id
@@ -284,7 +284,7 @@ class Database(object):
 
   def get_client_id_from_tmodel_id(self, tmodel_id):
     """Returns the client_id attached to the given T-Norm model_id
-    
+
     Keyword Parameters:
 
     tmodel_id
@@ -294,7 +294,7 @@ class Database(object):
     """
     return tmodel_id
 
-  def objects(self, protocol=None, purposes=None, model_ids=None, groups=None, 
+  def objects(self, protocol=None, purposes=None, model_ids=None, groups=None,
       classes=None, languages=None, subworld=None):
     """Returns a set of Files for the specific query by the user.
 
@@ -305,35 +305,35 @@ class Database(object):
 
     purposes
       The purposes required to be retrieved ('enrol', 'probe', 'train') or a tuple
-      with several of them. If 'None' is given (this is the default), it is 
+      with several of them. If 'None' is given (this is the default), it is
       considered the same as a tuple with all possible values. This field is
       ignored for the data from the "world" group.
 
     model_ids
-      Only retrieves the files for the provided list of model ids (claimed 
-      client id).  If 'None' is given (this is the default), no filter over 
+      Only retrieves the files for the provided list of model ids (claimed
+      client id).  If 'None' is given (this is the default), no filter over
       the model_ids is performed.
 
     groups
-      One of the groups ('dev', 'eval', 'world') or a tuple with several of them. 
-      If 'None' is given (this is the default), it is considered the same as a 
+      One of the groups ('dev', 'eval', 'world') or a tuple with several of them.
+      If 'None' is given (this is the default), it is considered the same as a
       tuple with all possible values.
 
     classes
-      The classes (types of accesses) to be retrieved ('client', 'impostor') 
-      or a tuple with several of them. If 'None' is given (this is the 
+      The classes (types of accesses) to be retrieved ('client', 'impostor')
+      or a tuple with several of them. If 'None' is given (this is the
       default), it is considered the same as a tuple with all possible values.
 
     languages
       The language spoken by the clients ('en')
       TODO: only English is currently supported
-      If 'None' is given (this is the default), it is considered the same as a 
+      If 'None' is given (this is the default), it is considered the same as a
       tuple with all possible values.
 
     subworld
       Specify a split of the world data ('onethird', 'twothirds')
-      In order to be considered, 'world' should be in groups and only one 
-      split should be specified. 
+      In order to be considered, 'world' should be in groups and only one
+      split should be specified.
 
     Returns: A list of files which have the given properties.
     """
@@ -371,41 +371,41 @@ class Database(object):
             filter(Client.language.in_(languages))
       if model_ids:
         q = q.filter(Client.id.in_(model_ids))
-      q = q.order_by(File.real_id, File.session_id, File.claimed_id, File.shot_id)
+      q = q.order_by(File.client_id, File.session_id, File.claimed_id, File.shot_id)
       retval += list(q)
-    
+
     if ('dev' in groups or 'eval' in groups):
       if('enrol' in purposes):
         q = self.session.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol).\
               filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup.in_(groups), ProtocolPurpose.purpose == 'enrol'))
         if model_ids:
           q = q.filter(Client.id.in_(model_ids))
-        q = q.order_by(File.real_id, File.session_id, File.claimed_id, File.shot_id)
+        q = q.order_by(File.client_id, File.session_id, File.claimed_id, File.shot_id)
         retval += list(q)
 
       if('probe' in purposes):
         if('client' in classes):
           q = self.session.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol).\
-                filter(File.real_id == File.claimed_id).\
+                filter(File.client_id == File.claimed_id).\
                 filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup.in_(groups), ProtocolPurpose.purpose == 'probe'))
           if model_ids:
             q = q.filter(Client.id.in_(model_ids))
-          q = q.order_by(File.real_id, File.session_id, File.claimed_id, File.shot_id)
+          q = q.order_by(File.client_id, File.session_id, File.claimed_id, File.shot_id)
           retval += list(q)
 
         if('impostor' in classes):
           q = self.session.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol).\
-                filter(File.real_id != File.claimed_id).\
+                filter(File.client_id != File.claimed_id).\
                 filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup.in_(groups), ProtocolPurpose.purpose == 'probe'))
           if model_ids:
             q = q.filter(File.claimed_id.in_(model_ids))
-          q = q.order_by(File.real_id, File.session_id, File.claimed_id, File.shot_id)
+          q = q.order_by(File.client_id, File.session_id, File.claimed_id, File.shot_id)
           retval += list(q)
-    
+
     return list(set(retval)) # To remove duplicates
 
   def tobjects(self, protocol=None, model_ids=None, groups=None, languages=None):
-    """Returns a set of Files for enrolling T-norm models for score 
+    """Returns a set of Files for enrolling T-norm models for score
        normalization.
 
     Keyword Parameters:
@@ -414,8 +414,8 @@ class Database(object):
       One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
 
     model_ids
-      Only retrieves the files for the provided list of model ids (claimed 
-      client id).  If 'None' is given (this is the default), no filter over 
+      Only retrieves the files for the provided list of model ids (claimed
+      client id).  If 'None' is given (this is the default), no filter over
       the model_ids is performed.
 
     groups
@@ -424,10 +424,10 @@ class Database(object):
     languages
       The language spoken by the clients ('en')
       TODO: only English is currently supported
-      If 'None' is given (this is the default), it is considered the same as a 
+      If 'None' is given (this is the default), it is considered the same as a
       tuple with all possible values.
 
-    Returns: A list of Files which have the given properties. 
+    Returns: A list of Files which have the given properties.
     """
 
     VALID_GROUPS = ('dev', 'eval')
@@ -438,7 +438,7 @@ class Database(object):
       tgroups.append('eval')
     if 'eval' in groups:
       tgroups.append('dev')
-    return self.objects(directory, extension, protocol, 'enrol', model_ids, tgroups, 'client', languages)
+    return self.objects(protocol, 'enrol', model_ids, tgroups, 'client', languages)
 
   def zobjects(self, protocol=None, model_ids=None, groups=None, languages=None):
     """Returns a set of Files to perform Z-norm score normalization.
@@ -449,8 +449,8 @@ class Database(object):
       One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
 
     model_ids
-      Only retrieves the files for the provided list of model ids (claimed 
-      client id).  If 'None' is given (this is the default), no filter over 
+      Only retrieves the files for the provided list of model ids (claimed
+      client id).  If 'None' is given (this is the default), no filter over
       the model_ids is performed.
 
     groups
@@ -459,7 +459,7 @@ class Database(object):
     languages
       The language spoken by the clients ('en')
       TODO: only English is currently supported
-      If 'None' is given (this is the default), it is considered the same as a 
+      If 'None' is given (this is the default), it is considered the same as a
       tuple with all possible values.
 
     Returns: A list of Files which have the given properties.
@@ -473,7 +473,7 @@ class Database(object):
       zgroups.append('eval')
     if 'eval' in groups:
       zgroups.append('dev')
-    return self.objects(directory, extension, protocol, 'probe', model_ids, zgroups, None, languages)
+    return self.objects(protocol, 'probe', model_ids, zgroups, None, languages)
 
   def protocol_names(self):
     """Returns all registered protocol names"""
@@ -560,4 +560,4 @@ class Database(object):
     for p in paths:
       retval.extend([k.id for k in fobj if k.path == p])
     return retval
- 
+
