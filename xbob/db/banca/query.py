@@ -73,7 +73,7 @@ class Database(object):
     return ProtocolPurpose.group_choices
 
   def client_groups(self):
-    """Returns the names of the XM2VTS groups. This is specific to this database which
+    """Returns the names of the BANCA groups. This is specific to this database which
     does not have separate training, development and evaluation sets."""
 
     return Client.group_choices
@@ -519,7 +519,7 @@ class Database(object):
 
     Keyword Parameters:
 
-    id
+    ids
       The ids of the object in the database table "file". This object should be
       a python iterable (such as a tuple or list).
 
@@ -556,6 +556,7 @@ class Database(object):
 
     self.assert_validity()
 
+    retval = []
     fobj = self.session.query(File).filter(File.path.in_(paths))
     for p in paths:
       retval.extend([k.id for k in fobj if k.path == p])
