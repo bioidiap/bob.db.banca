@@ -10,6 +10,10 @@ import os
 
 from .models import *
 
+def nodot(item):
+  """Can be used to ignore hidden files, starting with the . character."""
+  return item[0] != '.' 
+
 def add_files(session, imagedir, verbose):
   """Add files (and clients) to the BANCA database."""
 
@@ -27,10 +31,12 @@ def add_files(session, imagedir, verbose):
     if verbose: print "Adding file '%s'..." %(os.path.basename(filename).split('.')[0], )
     session.add(File(int(v[0]), os.path.basename(filename).split('.')[0], v[4], v[6], session_id))
 
-  file_list = os.listdir(imagedir)
+  subdir_list = filter(nodot, os.listdir(imagedir))
   client_dict = {}
-  for filename in file_list:
-    add_file(session, os.path.join(imagedir, filename), client_dict, verbose)
+  for subdir in subdir_list:
+    file_list = filter(nodot, os.listdir(os.path.join(imagedir, subdir)))
+    for filename in file_list:
+      add_file(session, os.path.join(imagedir, filename), client_dict)
 
 def add_subworlds(session, verbose):
   """Adds splits in the world set, based on the client ids"""
@@ -207,7 +213,7 @@ def add_command(subparsers):
   parser.add_argument('-v', '--verbose', action='count',
       help="Do SQL operations in a verbose way")
   parser.add_argument('-D', '--imagedir', action='store', metavar='DIR',
-      default='/idiap/group/vision/visidiap/databases/banca/english/images_gray',
+      default='/idiap/group/biometric/databases/banca/english/images/images/',
       help="Change the relative path to the directory containing the images of the BANCA database (defaults to %(default)s)")
 
   parser.set_defaults(func=create) #action

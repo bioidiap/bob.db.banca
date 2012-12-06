@@ -2,9 +2,11 @@
  BANCA Database
 ================
 
-This package contains the access API and descriptions for the `BANCA
+
+This package contains the access API and descriptions for the `BANCA English
 Database <http://www.ee.surrey.ac.uk/CVSSP/banca/>`_. The actual raw data for
-the database should be downloaded from the original URL. This package only
+the database should be downloaded from the original URL. This API is only 
+compatible with the images from the BANCA English database.  This package only
 contains the `Bob <http://www.idiap.ch/software/bob/>`_ accessor methods to use
 the DB directly from python, with our certified protocols.
 
