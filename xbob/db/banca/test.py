@@ -21,24 +21,68 @@
 
 import os, sys
 import unittest
-from .query import Database
+import xbob.db.banca
 
 class BancaDatabaseTest(unittest.TestCase):
   """Performs various tests on the BANCA database."""
 
-  def test01_manage_dumplist_1(self):
+  def test01_clients(self):
+    # test whether the correct number of clients is returned
+    db = xbob.db.banca.Database()
+
+    self.assertEqual(len(db.clients()), 82)
+    self.assertEqual(len(db.clients(groups='world')), 30)
+    self.assertEqual(len(db.clients(groups='dev')), 26)
+    self.assertEqual(len(db.clients(groups='eval')), 26)
+    self.assertEqual(len(db.tclients(groups='dev')), 26)
+    self.assertEqual(len(db.tclients(groups='eval')), 26)
+
+    self.assertEqual(len(db.clients(genders='f')), 41)
+    self.assertEqual(len(db.clients(genders='m')), 41)
+
+
+  def test02_objects(self):
+    # tests if the right number of File objects is returned
+    db = xbob.db.banca.Database()
+
+    self.assertEqual(len(db.objects()), 6540)
+    self.assertEqual(len(db.objects(groups='world')), 300)
+    self.assertEqual(len(db.objects(groups='dev')), 3120)
+    self.assertEqual(len(db.objects(groups='eval')), 3120)
+
+    # test for the different protocols
+    for protocol in db.protocols():
+      # assure that the number of enroll files is independent from the protocol
+      for group in ('dev', 'eval'):
+        self.assertEqual(len(db.objects(groups=group, purposes='enrol')), 390)
+        for model_id in db.model_ids(groups=group):
+          self.assertEqual(len(db.objects(groups=group, purposes='enrol', model_ids=model_id)), 15)
+        for model_id in db.tmodel_ids(groups=group):
+          self.assertEqual(len(db.tobjects(groups=group, model_ids=model_id)), 15)
+
+      # check the number of probe files
+      for group in ('dev', 'eval'):
+        self.assertEqual(len(db.objects(groups=group, purposes='probe')), 2730)
+        for model_id in db.model_ids(groups=group):
+          self.assertEqual(len(db.objects(groups=group, purposes='probe', model_ids=model_id)), 105)
+        for model_id in db.tmodel_ids(groups=group):
+          self.assertEqual(len(db.zobjects(groups=group, model_ids=model_id)), 105)
+
+
+
+  def test03_manage_dumplist_1(self):
 
     from bob.db.script.dbmanage import main
 
     self.assertEqual(main('banca dumplist --self-test'.split()), 0)
 
-  def test02_manage_dumplist_2(self):
-    
+  def test04_manage_dumplist_2(self):
+
     from bob.db.script.dbmanage import main
 
     self.assertEqual(main('banca dumplist --protocol=P --classes=client --groups=dev --purposes=enrol --self-test'.split()), 0)
 
-  def test03_manage_checkfiles(self):
+  def test05_manage_checkfiles(self):
 
     from bob.db.script.dbmanage import main
 
