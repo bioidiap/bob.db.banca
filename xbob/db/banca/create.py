@@ -36,7 +36,7 @@ def add_files(session, imagedir, verbose):
   for subdir in subdir_list:
     file_list = filter(nodot, os.listdir(os.path.join(imagedir, subdir)))
     for filename in file_list:
-      add_file(session, os.path.join(imagedir, filename), client_dict)
+      add_file(session, os.path.join(imagedir, filename), client_dict, verbose)
 
 def add_subworlds(session, verbose):
   """Adds splits in the world set, based on the client ids"""
