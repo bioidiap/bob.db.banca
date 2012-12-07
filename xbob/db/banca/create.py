@@ -17,7 +17,7 @@ def nodot(item):
 def add_files(session, imagedir, verbose):
   """Add files (and clients) to the BANCA database."""
 
-  def add_file(session, filename, client_dict, verbose):
+  def add_file(session, subdir, filename, client_dict, verbose):
     """Parse a single filename and add it to the list.
        Also add a client entry if not already in the database."""
 
@@ -28,15 +28,16 @@ def add_files(session, imagedir, verbose):
       session.add(Client(int(v[0]), v[1], v[2], v[5]))
       client_dict[v[0]] = True
     session_id = int(v[3].split('s')[1])
-    if verbose: print "Adding file '%s'..." %(os.path.basename(filename).split('.')[0], )
-    session.add(File(int(v[0]), os.path.basename(filename).split('.')[0], v[4], v[6], session_id))
+    base_path = os.path.join(subdir, os.path.basename(filename).split('.')[0])
+    if verbose: print "Adding file '%s'..." %(base_path, )
+    session.add(File(int(v[0]), base_path, v[4], v[6], session_id))
 
   subdir_list = filter(nodot, os.listdir(imagedir))
   client_dict = {}
   for subdir in subdir_list:
     file_list = filter(nodot, os.listdir(os.path.join(imagedir, subdir)))
     for filename in file_list:
-      add_file(session, os.path.join(imagedir, filename), client_dict, verbose)
+      add_file(session, subdir, os.path.join(imagedir, filename), client_dict, verbose)
 
 def add_subworlds(session, verbose):
   """Adds splits in the world set, based on the client ids"""
