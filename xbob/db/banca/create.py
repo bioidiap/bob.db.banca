@@ -28,7 +28,7 @@ def add_files(session, imagedir, verbose):
       session.add(Client(int(v[0]), v[1], v[2], v[5]))
       client_dict[v[0]] = True
     session_id = int(v[3].split('s')[1])
-    base_path =  os.path.join(subdir,os.path.basename(filename).split('.')[0])
+    base_path = os.path.join(subdir, os.path.basename(filename).split('.')[0])
     if verbose: print "Adding file '%s'..." %(base_path, )
     session.add(File(int(v[0]), base_path, v[4], v[6], session_id))
 
