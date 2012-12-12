@@ -29,9 +29,10 @@ def add_files(session, imagedir, verbose):
       client_dict[v[0]] = True
     session_id = int(v[3].split('s')[1])
     base_path = os.path.join(subdir, os.path.basename(filename).split('.')[0])
-    if verbose: print "Adding file '%s'..." %(base_path, )
+    if verbose>1: print "  Adding file '%s'..." %(base_path, )
     session.add(File(int(v[0]), base_path, v[4], v[6], session_id))
 
+  if verbose: print "Adding files..."
   subdir_list = filter(nodot, os.listdir(imagedir))
   client_dict = {}
   for subdir in subdir_list:
@@ -55,7 +56,7 @@ def add_subworlds(session, verbose):
     session.refresh(su)
     l = slist[k]
     for c_id in l:
-      if verbose: print "Adding client '%d' to subworld '%s'..." %(c_id, snames[k])
+      if verbose>1: print "  Adding client '%d' to subworld '%s'..." %(c_id, snames[k])
       su.clients.append(session.query(Client).filter(Client.id == c_id).first())
 
 def add_protocols(session, verbose):
@@ -121,7 +122,7 @@ def add_protocols(session, verbose):
     for key in range(len(protocolPurpose_list)):
       purpose = protocolPurpose_list[key]
       pu = ProtocolPurpose(p.id, purpose[0], purpose[1])
-      if verbose: print "  Adding protocol purpose ('%s','%s')..." % (purpose[0], purpose[1])
+      if verbose>1: print "  Adding protocol purpose ('%s','%s')..." % (purpose[0], purpose[1])
       session.add(pu)
       session.flush()
       session.refresh(pu)
@@ -147,7 +148,7 @@ def add_protocols(session, verbose):
         q = session.query(File).join(Client).filter(Client.sgroup == client_group).\
               order_by(File.id)
         for k in q:
-          if verbose: print "    Adding protocol file '%s'..." % (k.path)
+          if verbose>1: print "    Adding protocol file '%s'..." % (k.path)
           pu.files.append(k)
       else:
         for sid in session_list:
@@ -155,7 +156,7 @@ def add_protocols(session, verbose):
                 filter(and_(File.session_id == sid, File.client_id == File.claimed_id)).\
                 order_by(File.id)
           for k in q:
-            if verbose: print "    Adding protocol file '%s'..." % (k.path)
+            if verbose>1: print "    Adding protocol file '%s'..." % (k.path)
             pu.files.append(k)
 
       # Adds impostors if required
@@ -165,7 +166,7 @@ def add_protocols(session, verbose):
                 filter(and_(File.session_id == sid, File.client_id != File.claimed_id)).\
                 order_by(File.id)
           for k in q:
-            if verbose: print "    Adding protocol file '%s'..." % (k.path)
+            if verbose>1: print "    Adding protocol file '%s'..." % (k.path)
             pu.files.append(k)
 
 
@@ -174,7 +175,7 @@ def create_tables(args):
 
   from bob.db.utils import create_engine_try_nolock
 
-  engine = create_engine_try_nolock(args.type, args.files[0], echo=(args.verbose >= 2))
+  engine = create_engine_try_nolock(args.type, args.files[0], echo=(args.verbose > 2))
   Base.metadata.create_all(engine)
 
 # Driver API
@@ -197,7 +198,7 @@ def create(args):
 
   # the real work...
   create_tables(args)
-  s = session_try_nolock(args.type, args.files[0], echo=(args.verbose >= 2))
+  s = session_try_nolock(args.type, args.files[0], echo=(args.verbose > 2))
   add_files(s, args.imagedir, args.verbose)
   add_subworlds(s, args.verbose)
   add_protocols(s, args.verbose)
@@ -209,12 +210,8 @@ def add_command(subparsers):
 
   parser = subparsers.add_parser('create', help=create.__doc__)
 
-  parser.add_argument('-R', '--recreate', action='store_true', default=False,
-      help="If set, I'll first erase the current database")
-  parser.add_argument('-v', '--verbose', action='count',
-      help="Do SQL operations in a verbose way")
-  parser.add_argument('-D', '--imagedir', action='store', metavar='DIR',
-      default='/idiap/group/biometric/databases/banca/english/images/images/',
-      help="Change the relative path to the directory containing the images of the BANCA database (defaults to %(default)s)")
+  parser.add_argument('-R', '--recreate', action='store_true', help="If set, I'll first erase the current database")
+  parser.add_argument('-v', '--verbose', action='count', help='Do SQL operations in a verbose way')
+  parser.add_argument('-D', '--imagedir', metavar='DIR', default='/idiap/group/biometric/databases/banca/english/images/images/', help="Change the relative path to the directory containing the images of the BANCA database (defaults to %(default)s)")
 
   parser.set_defaults(func=create) #action
