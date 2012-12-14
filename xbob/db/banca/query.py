@@ -344,7 +344,7 @@ class Database(xbob.db.verification.utils.SQLiteDatabase, xbob.db.verification.u
     # Now query the database
     retval = []
     if 'world' in groups:
-      q = self.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol)
+      q = self.query(File).join(Client).join((ProtocolPurpose, File.protocolPurposes)).join(Protocol)
       if len(subworld) == 1:
         q = q.join(Subworld).filter(Subworld.name.in_(subworld))
       q = q.filter(Client.sgroup == 'world').\
@@ -357,7 +357,7 @@ class Database(xbob.db.verification.utils.SQLiteDatabase, xbob.db.verification.u
 
     if ('dev' in groups or 'eval' in groups):
       if('enrol' in purposes):
-        q = self.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol).\
+        q = self.query(File).join(Client).join((ProtocolPurpose, File.protocolPurposes)).join(Protocol).\
               filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup.in_(groups), ProtocolPurpose.purpose == 'enrol'))
         if model_ids:
           q = q.filter(Client.id.in_(model_ids))
@@ -366,7 +366,7 @@ class Database(xbob.db.verification.utils.SQLiteDatabase, xbob.db.verification.u
 
       if('probe' in purposes):
         if('client' in classes):
-          q = self.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol).\
+          q = self.query(File).join(Client).join((ProtocolPurpose, File.protocolPurposes)).join(Protocol).\
                 filter(File.client_id == File.claimed_id).\
                 filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup.in_(groups), ProtocolPurpose.purpose == 'probe'))
           if model_ids:
@@ -375,7 +375,7 @@ class Database(xbob.db.verification.utils.SQLiteDatabase, xbob.db.verification.u
           retval += list(q)
 
         if('impostor' in classes):
-          q = self.query(File).join(Client).join(ProtocolPurpose, File.protocolPurposes).join(Protocol).\
+          q = self.query(File).join(Client).join((ProtocolPurpose, File.protocolPurposes)).join(Protocol).\
                 filter(File.client_id != File.claimed_id).\
                 filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup.in_(groups), ProtocolPurpose.purpose == 'probe'))
           if model_ids:
