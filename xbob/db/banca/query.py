@@ -114,7 +114,7 @@ class Database(xbob.db.verification.utils.SQLiteDatabase, xbob.db.verification.u
     # List of the clients
     if "world" in groups:
       if len(subworld)==1:
-        q = self.query(Client).join(Subworld).filter(Subworld.name.in_(subworld))
+        q = self.query(Client).join((Subworld,Client.subworld)).filter(Subworld.name.in_(subworld))
       else:
         q = self.query(Client).filter(Client.sgroup == 'world')
       q = q.filter(Client.gender.in_(genders)).\
@@ -346,7 +346,7 @@ class Database(xbob.db.verification.utils.SQLiteDatabase, xbob.db.verification.u
     if 'world' in groups:
       q = self.query(File).join(Client).join((ProtocolPurpose, File.protocolPurposes)).join(Protocol)
       if len(subworld) == 1:
-        q = q.join(Subworld).filter(Subworld.name.in_(subworld))
+        q = q.join((Subworld,Client.subworld)).filter(Subworld.name.in_(subworld))
       q = q.filter(Client.sgroup == 'world').\
             filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup == 'world')).\
             filter(Client.language.in_(languages))

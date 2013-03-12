@@ -32,6 +32,8 @@ class BancaDatabaseTest(unittest.TestCase):
 
     self.assertEqual(len(db.clients()), 82)
     self.assertEqual(len(db.clients(groups='world')), 30)
+    self.assertEqual(len(db.clients(groups='world', subworld='onethird')), 10)
+    self.assertEqual(len(db.clients(groups='world', subworld='twothirds')), 20)
     self.assertEqual(len(db.clients(groups='dev')), 26)
     self.assertEqual(len(db.clients(groups='eval')), 26)
     self.assertEqual(len(db.tclients(groups='dev')), 26)
@@ -47,6 +49,8 @@ class BancaDatabaseTest(unittest.TestCase):
 
     self.assertEqual(len(db.objects()), 6540)
     self.assertEqual(len(db.objects(groups='world')), 300)
+    self.assertEqual(len(db.objects(groups='world', subworld='onethird')), 100)
+    self.assertEqual(len(db.objects(groups='world', subworld='twothirds')), 200)
     self.assertEqual(len(db.objects(groups='dev')), 3120)
     self.assertEqual(len(db.objects(groups='eval')), 3120)
 
