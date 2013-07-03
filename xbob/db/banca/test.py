@@ -73,7 +73,23 @@ class BancaDatabaseTest(unittest.TestCase):
           self.assertEqual(len(db.zobjects(groups=group, model_ids=model_id)), 105)
 
 
-  def test03_driver_api(self):
+  def test03_annotations(self):
+    # Tests that for all files the annotated eye positions exist and are in correct order
+    db = xbob.db.banca.Database()
+
+    for f in db.objects():
+      annotations = db.annotations(f.id)
+      self.assertTrue(annotations is not None)
+      self.assertEqual(len(annotations), 2)
+      self.assertTrue('leye' in annotations)
+      self.assertTrue('reye' in annotations)
+      self.assertEqual(len(annotations['reye']), 2)
+      self.assertEqual(len(annotations['leye']), 2)
+      # assert that the eye positions are not exchanged
+      self.assertGreater(annotations['leye'][1], annotations['reye'][1])
+
+
+  def test04_driver_api(self):
 
     from bob.db.script.dbmanage import main
     self.assertEqual(main('banca dumplist --self-test'.split()), 0)

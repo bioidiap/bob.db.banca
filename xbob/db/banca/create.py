@@ -40,6 +40,30 @@ def add_files(session, imagedir, verbose):
     for filename in file_list:
       add_file(session, subdir, os.path.join(imagedir, filename), client_dict, verbose)
 
+
+def add_annotations(session, annotdir, verbose):
+  """Add files (and clients) to the BANCA database."""
+
+  def read_annotation(filename, file_id):
+    # read the eye positions, which are stored as four integers in one line
+    line = open(filename, 'r').readline()
+    positions = line.split()
+    assert len(positions) == 4
+    return Annotation(file_id, positions)
+
+  # iterate though all stored images and try to access the annotations
+  session.flush()
+  if verbose: print "Adding annotations..."
+  files = session.query(File)
+  for f in files:
+    annot_file = f.make_path(annotdir, '.pos')
+    if os.path.exists(annot_file):
+      if verbose>1: print "  Adding annotation '%s'..." %(annot_file, )
+      session.add(read_annotation(annot_file, f.id))
+    else:
+      print "Could not locate annotation file '%s'" % annot_file
+
+
 def add_subworlds(session, verbose):
   """Adds splits in the world set, based on the client ids"""
 
@@ -200,6 +224,7 @@ def create(args):
   create_tables(args)
   s = session_try_nolock(args.type, args.files[0], echo=(args.verbose > 2))
   add_files(s, args.imagedir, args.verbose)
+  add_annotations(s, args.annotdir, args.verbose)
   add_subworlds(s, args.verbose)
   add_protocols(s, args.verbose)
   s.commit()
@@ -213,5 +238,6 @@ def add_command(subparsers):
   parser.add_argument('-R', '--recreate', action='store_true', help="If set, I'll first erase the current database")
   parser.add_argument('-v', '--verbose', action='count', help='Do SQL operations in a verbose way')
   parser.add_argument('-D', '--imagedir', metavar='DIR', default='/idiap/group/biometric/databases/banca/english/images/images/', help="Change the relative path to the directory containing the images of the BANCA database (defaults to %(default)s)")
+  parser.add_argument('-A', '--annotdir', metavar='DIR', default='/idiap/group/biometric/annotations/banca/english/images/annotations/', help="Change the relative path to the directory containing the annotations of the BANCA database (defaults to %(default)s)")
 
   parser.set_defaults(func=create) #action

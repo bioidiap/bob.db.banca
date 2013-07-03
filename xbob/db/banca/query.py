@@ -454,6 +454,27 @@ class Database(xbob.db.verification.utils.SQLiteDatabase, xbob.db.verification.u
       zgroups.append('dev')
     return self.objects(protocol, 'probe', model_ids, zgroups, None, languages)
 
+  def annotations(self, file_id):
+    """Returns the annotations for the image with the given file id.
+
+    Keyword Parameters:
+
+    file_id
+      The id of the File object to retrieve the annotations for.
+
+    Returns: the eye annotations as a dictionary {'reye':(y,x), 'leye':(y,x)}.
+    """
+
+    self.assert_validity()
+
+    query = self.query(Annotation).join(File).filter(File.id==file_id)
+    assert query.count() == 1
+    annotation = query.first()
+
+    # return the annotations as returned by the call function of the Annotation object
+    return annotation()
+
+
   def protocol_names(self):
     """Returns all registered protocol names"""
 
