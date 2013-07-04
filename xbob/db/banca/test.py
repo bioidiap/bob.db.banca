@@ -86,7 +86,7 @@ class BancaDatabaseTest(unittest.TestCase):
       self.assertEqual(len(annotations['reye']), 2)
       self.assertEqual(len(annotations['leye']), 2)
       # assert that the eye positions are not exchanged
-      self.assertGreater(annotations['leye'][1], annotations['reye'][1])
+      self.assertTrue(annotations['leye'][1] > annotations['reye'][1])
 
 
   def test04_driver_api(self):
