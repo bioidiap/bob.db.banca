@@ -42,7 +42,7 @@ def add_files(session, imagedir, verbose):
 
 
 def add_annotations(session, annotdir, verbose):
-  """Add files (and clients) to the BANCA database."""
+  """Reads the annotation files and adds the annotations to the .sql3 database."""
 
   def read_annotation(filename, file_id):
     # read the eye positions, which are stored as four integers in one line
