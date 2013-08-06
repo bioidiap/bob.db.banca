@@ -9,7 +9,7 @@ from setuptools import setup, find_packages
 setup(
 
     name='xbob.db.banca',
-    version='1.1.2',
+    version='1.1.3a0',
     description='BANCA Database Access API for Bob',
     url='http://github.com/bioidiap/xbob.db.banca',
     license='GPLv3',
