@@ -29,14 +29,14 @@ def add_files(session, imagedir, verbose):
       client_dict[v[0]] = True
     session_id = int(v[3].split('s')[1])
     base_path = os.path.join(subdir, os.path.basename(filename).split('.')[0])
-    if verbose>1: print "  Adding file '%s'..." %(base_path, )
+    if verbose>1: print("  Adding file '%s'..." %(base_path, ))
     session.add(File(int(v[0]), base_path, v[4], v[6], session_id))
 
-  if verbose: print "Adding files..."
-  subdir_list = filter(nodot, os.listdir(imagedir))
+  if verbose: print("Adding files...")
+  subdir_list = list(filter(nodot, os.listdir(imagedir)))
   client_dict = {}
   for subdir in subdir_list:
-    file_list = filter(nodot, os.listdir(os.path.join(imagedir, subdir)))
+    file_list = list(filter(nodot, os.listdir(os.path.join(imagedir, subdir))))
     for filename in file_list:
       add_file(session, subdir, os.path.join(imagedir, filename), client_dict, verbose)
 
@@ -53,15 +53,15 @@ def add_annotations(session, annotdir, verbose):
 
   # iterate though all stored images and try to access the annotations
   session.flush()
-  if verbose: print "Adding annotations..."
+  if verbose: print("Adding annotations...")
   files = session.query(File)
   for f in files:
     annot_file = f.make_path(annotdir, '.pos')
     if os.path.exists(annot_file):
-      if verbose>1: print "  Adding annotation '%s'..." %(annot_file, )
+      if verbose>1: print("  Adding annotation '%s'..." %(annot_file, ))
       session.add(read_annotation(annot_file, f.id))
     else:
-      print "Could not locate annotation file '%s'" % annot_file
+      print("Could not locate annotation file '%s'" % annot_file)
 
 
 def add_subworlds(session, verbose):
@@ -73,14 +73,14 @@ def add_subworlds(session, verbose):
             [9001, 9007, 9009, 9011, 9013, 9015, 9017, 9019, 9021, 9023,
              9025, 9029, 9031, 9037, 9039, 9041, 9045, 9047, 9051, 9059] ]
   for k in range(len(snames)):
-    if verbose: print "Adding subworld '%s'" %(snames[k], )
+    if verbose: print("Adding subworld '%s'" %(snames[k], ))
     su = Subworld(snames[k])
     session.add(su)
     session.flush()
     session.refresh(su)
     l = slist[k]
     for c_id in l:
-      if verbose>1: print "  Adding client '%d' to subworld '%s'..." %(c_id, snames[k])
+      if verbose>1: print("  Adding client '%d' to subworld '%s'..." %(c_id, snames[k]))
       su.clients.append(session.query(Client).filter(Client.id == c_id).first())
 
 def add_protocols(session, verbose):
@@ -137,7 +137,7 @@ def add_protocols(session, verbose):
   for proto in protocol_definitions:
     p = Protocol(proto)
     # Add protocol
-    if verbose: print "Adding protocol %s..." % (proto)
+    if verbose: print("Adding protocol %s..." % (proto))
     session.add(p)
     session.flush()
     session.refresh(p)
@@ -146,7 +146,7 @@ def add_protocols(session, verbose):
     for key in range(len(protocolPurpose_list)):
       purpose = protocolPurpose_list[key]
       pu = ProtocolPurpose(p.id, purpose[0], purpose[1])
-      if verbose>1: print "  Adding protocol purpose ('%s','%s')..." % (purpose[0], purpose[1])
+      if verbose>1: print("  Adding protocol purpose ('%s','%s')..." % (purpose[0], purpose[1]))
       session.add(pu)
       session.flush()
       session.refresh(pu)
@@ -172,7 +172,7 @@ def add_protocols(session, verbose):
         q = session.query(File).join(Client).filter(Client.sgroup == client_group).\
               order_by(File.id)
         for k in q:
-          if verbose>1: print "    Adding protocol file '%s'..." % (k.path)
+          if verbose>1: print("    Adding protocol file '%s'..." % (k.path))
           pu.files.append(k)
       else:
         for sid in session_list:
@@ -180,7 +180,7 @@ def add_protocols(session, verbose):
                 filter(and_(File.session_id == sid, File.client_id == File.claimed_id)).\
                 order_by(File.id)
           for k in q:
-            if verbose>1: print "    Adding protocol file '%s'..." % (k.path)
+            if verbose>1: print("    Adding protocol file '%s'..." % (k.path))
             pu.files.append(k)
 
       # Adds impostors if required
@@ -190,7 +190,7 @@ def add_protocols(session, verbose):
                 filter(and_(File.session_id == sid, File.client_id != File.claimed_id)).\
                 order_by(File.id)
           for k in q:
-            if verbose>1: print "    Adding protocol file '%s'..." % (k.path)
+            if verbose>1: print("    Adding protocol file '%s'..." % (k.path))
             pu.files.append(k)
 
 
