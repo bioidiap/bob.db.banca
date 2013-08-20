@@ -7,6 +7,7 @@ BANCA database in the most obvious ways.
 """
 
 import os
+import six
 from bob.db import utils
 from .models import *
 from .driver import Interface
@@ -31,7 +32,7 @@ class Database(xbob.db.verification.utils.SQLiteDatabase, xbob.db.verification.u
     """Replace 'dev' by 'g1' and 'eval' by 'g2' in a list of groups, and
        returns the new list"""
     if not l: return l
-    elif isinstance(l, str): return self.__group_replace_alias__((l,))
+    elif isinstance(l, six.string_types): return self.__group_replace_alias__((l,))
     l2 = []
     for val in l:
       if(val == 'dev'): l2.append('g1')
