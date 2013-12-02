@@ -30,6 +30,7 @@ class BancaDatabaseTest(unittest.TestCase):
     # test whether the correct number of clients is returned
     db = xbob.db.banca.Database()
 
+    self.assertEqual(len(db.groups()), 3)
     self.assertEqual(len(db.clients()), 82)
     self.assertEqual(len(db.clients(groups='world')), 30)
     self.assertEqual(len(db.clients(groups='world', subworld='onethird')), 10)
