@@ -54,7 +54,7 @@ class Database(xbob.db.verification.utils.SQLiteDatabase, xbob.db.verification.u
       else: l2.append(val)
     return tuple(l2)
 
-  def groups(self):
+  def groups(self, protocol=None):
     """Returns the names of all registered groups"""
 
     return ProtocolPurpose.group_choices
