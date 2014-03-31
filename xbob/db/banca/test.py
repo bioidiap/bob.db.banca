@@ -94,7 +94,7 @@ class BancaDatabaseTest(unittest.TestCase):
 
     from bob.db.script.dbmanage import main
     self.assertEqual(main('banca dumplist --self-test'.split()), 0)
-    self.assertEqual(main('banca dumplist --protocol=P --class=client --group=dev --purpose=enrol --client=1008 --self-test'.split()), 0)
+    self.assertEqual(main('banca dumplist --protocol=P --class=client --group=dev --purpose=enrol --model-id=1008 --self-test'.split()), 0)
     self.assertEqual(main('banca checkfiles --self-test'.split()), 0)
     self.assertEqual(main('banca reverse 05/1021_f_g2_s05_1026_en_3 --self-test'.split()), 0)
     self.assertEqual(main('banca path 2327 --self-test'.split()), 0)
