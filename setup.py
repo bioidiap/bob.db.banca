@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 setup(
 
     name='xbob.db.banca',
-    version='1.2.2a0',
+    version='1.2.3a0',
     description='BANCA Database Access API for Bob',
     url='https://pypi.python.org/pypi/xbob.db.banca',
     license='GPLv3',
