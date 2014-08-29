@@ -22,10 +22,27 @@
 import os, sys
 import bob.db.banca
 
-db = bob.db.banca.Database()
+def db_available(test):
+  """Decorator for detecting if OpenCV/Python bindings are available"""
+  from bob.io.base.test_utils import datafile
+  from nose.plugins.skip import SkipTest
+  import functools
 
+  @functools.wraps(test)
+  def wrapper(*args, **kwargs):
+    dbfile = datafile("db.sql3", __name__, None)
+    if os.path.exists(dbfile):
+      return test(*args, **kwargs)
+    else:
+      raise SkipTest("The database file '%s' is not available; did you forget to run 'bob_dbmanage.py %s create' ?" % (dbfile, 'banca'))
+
+  return wrapper
+
+
+@db_available
 def test_clients():
   # test whether the correct number of clients is returned
+  db = bob.db.banca.Database()
   assert len(db.groups()) == 3
   assert len(db.clients()) == 82
   assert len(db.clients(groups='world')) == 30
@@ -40,9 +57,10 @@ def test_clients():
   assert len(db.clients(genders='m')) == 41
 
 
+@db_available
 def test_objects():
   # tests if the right number of File objects is returned
-
+  db = bob.db.banca.Database()
   assert len(db.objects()) == 6540
   assert len(db.objects(groups='world')) == 300
   assert len(db.objects(groups='world', subworld='onethird')) == 100
@@ -69,9 +87,10 @@ def test_objects():
         assert len(db.zobjects(groups=group, model_ids=model_id)) == 105
 
 
+@db_available
 def test_annotations():
   # Tests that for all files the annotated eye positions exist and are in correct order
-
+  db = bob.db.banca.Database()
   for f in db.objects():
     annotations = db.annotations(f.id)
     assert annotations is not None
@@ -84,8 +103,9 @@ def test_annotations():
     assert annotations['leye'][1] > annotations['reye'][1]
 
 
+@db_available
 def test_driver_api():
-
+  # Tests the bob_dbmanage.py driver API
   from bob.db.base.script.dbmanage import main
   assert main('banca dumplist --self-test'.split()) == 0
   assert main('banca dumplist --protocol=P --class=client --group=dev --purpose=enrol --model-id=1008 --self-test'.split()) == 0
