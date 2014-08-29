@@ -22,14 +22,14 @@ from setuptools import setup, find_packages
 # parameters that define our package.
 setup(
 
-    name='xbob.db.banca',
-    version='1.2.3a0',
+    name='bob.db.banca',
+    version='2.0.0a0',
     description='BANCA Database Access API for Bob',
-    url='https://pypi.python.org/pypi/xbob.db.banca',
+    url='https://pypi.python.org/pypi/bob.db.banca',
     license='GPLv3',
     author='Laurent El Shafey',
     author_email='laurent.el-shafey@idiap.ch',
-    keywords='face recognition, bob, xbob, xbob.db, BANCA',
+    keywords='face recognition, bob, bob.db, BANCA',
     long_description=open('README.rst').read(),
 
     # This line is required for any distutils based packaging.
@@ -40,29 +40,30 @@ setup(
     install_requires=[
       'setuptools',
       'six',  # py2/3 compatibility library
-      'bob',  # base signal proc./machine learning library
-      'xbob.db.verification.utils>=1.0.0' # defines a set of utilities for face verification databases like this one.
+      'bob.io.base',
+      'bob.db.base',
+      'bob.db.verification.utils>=1.0.0' # defines a set of utilities for face verification databases like this one.
     ],
 
     namespace_packages = [
-      'xbob',
-      'xbob.db',
-      ],
+      'bob',
+      'bob.db',
+    ],
 
     entry_points = {
       # bob database declaration
       'bob.db': [
-        'banca = xbob.db.banca.driver:Interface',
-        ],
+        'banca = bob.db.banca.driver:Interface',
+      ],
 
       # bob unittest declaration
       'bob.test': [
-        'banca = xbob.db.banca.test:BancaDatabaseTest',
-        ],
-      },
+        'banca = bob.db.banca.test',
+      ],
+    },
 
     classifiers = [
-      'Development Status :: 5 - Production/Stable',
+      'Development Status :: 4 - Beta',
       'Environment :: Console',
       'Intended Audience :: Developers',
       'Intended Audience :: Education',
@@ -73,5 +74,5 @@ setup(
       'Programming Language :: Python :: 3',
       'Topic :: Scientific/Engineering :: Artificial Intelligence',
       'Topic :: Database :: Front-Ends',
-      ],
+    ],
 )

@@ -1,0 +1,33 @@
+language: python
+matrix:
+  include:
+  - python: 2.6
+  - python: 2.7
+    env:
+    - secure: IsIuB+1cKlkdqXxNmAGp/me3JrYcuTzrZVcP2x9XWsJR43AW7jlPet9fB1lsU6pzfymCww3eody+J4ZiTcKWjL91BLHLNbBcny6EdzwZzdt26sH7moF53WEe678bwcmrkBEDbbaTODPKJDKFNHWy2QjBd46KzFBsvUBMzPL8skA=
+    - secure: RyfuwYiUnkICmUMqV/oV1X0rckwa3FHxwt2zCf/uDPzQitccXf64byZp+yh6Va1epIc4pLXZ4nI2UBg2P222Q7xjOciXJShQZAXANeajhIfoLdC/mM/TvwJLOqviFrSh2fJlnuj1/Rwya3yhW0fkDlwJjyoc7vrJthIy1wgRExo=
+  - python: 3.2
+    env:
+    - NUMPYSPEC===1.8.0
+  - python: 3.3
+    env:
+    - NUMPYSPEC===1.8.0
+before_install:
+- sudo add-apt-repository -y ppa:biometrics/bob
+- sudo apt-get update -qq
+- sudo apt-get install -qq --force-yes libboost-all-dev libblitz1-dev libhdf5-serial-dev libatlas-dev libatlas-base-dev liblapack-dev
+- if [ -n "${NUMPYSPEC}" ]; then sudo apt-get install -qq gfortran; fi
+- if [ -n "${NUMPYSPEC}" ]; then pip install --upgrade pip setuptools; fi
+- if [ -n "${NUMPYSPEC}" ]; then pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel numpy$NUMPYSPEC matplotlib==1.3.0 sphinx nose==1.3.0; fi
+- pip install coveralls
+install:
+- python bootstrap.py
+- ./bin/buildout
+script:
+- ./bin/python -c 'from bob.db.banca import get_config; print(get_config())'
+- ./bin/coverage run --source=bob.db.banca ./bin/nosetests -sv
+- ./bin/sphinx-build -b doctest doc sphinx
+- ./bin/sphinx-build -b html doc sphinx
+after_success:
+- coveralls
+- ./src/bob.extension/scripts/upload-sphinx.sh
