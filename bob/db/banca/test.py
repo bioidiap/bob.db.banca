@@ -23,7 +23,7 @@ import os, sys
 import bob.db.banca
 
 def db_available(test):
-  """Decorator for detecting if OpenCV/Python bindings are available"""
+  """Decorator for detecting if the database file is available"""
   from bob.io.base.test_utils import datafile
   from nose.plugins.skip import SkipTest
   import functools

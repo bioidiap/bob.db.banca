@@ -2,9 +2,9 @@
 .. @author: Manuel Guenther <Manuel.Guenther@idiap.ch>
 .. @date:   Tue Aug 26 09:42:18 CEST 2014
 
-===============================================
- BANCA Database of Faces Verification Protocol
-===============================================
+=======================================
+ BANCA Database Verification Protocols
+=======================================
 
 .. todolist::
 
