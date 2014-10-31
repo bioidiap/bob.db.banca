@@ -72,9 +72,9 @@ def test_objects():
   for protocol in db.protocols():
     # assure that the number of enroll files is independent from the protocol
     for group in ('dev', 'eval'):
-      assert len(db.objects(groups=group, purposes='enrol')) == 390
+      assert len(db.objects(groups=group, purposes='enroll')) == 390
       for model_id in db.model_ids(groups=group):
-        assert len(db.objects(groups=group, purposes='enrol', model_ids=model_id)) == 15
+        assert len(db.objects(groups=group, purposes='enroll', model_ids=model_id)) == 15
       for model_id in db.tmodel_ids(groups=group):
         assert len(db.tobjects(groups=group, model_ids=model_id)) == 15
 
@@ -108,7 +108,7 @@ def test_driver_api():
   # Tests the bob_dbmanage.py driver API
   from bob.db.base.script.dbmanage import main
   assert main('banca dumplist --self-test'.split()) == 0
-  assert main('banca dumplist --protocol=P --class=client --group=dev --purpose=enrol --model-id=1008 --self-test'.split()) == 0
+  assert main('banca dumplist --protocol=P --class=client --group=dev --purpose=enroll --model-id=1008 --self-test'.split()) == 0
   assert main('banca checkfiles --self-test'.split()) == 0
   assert main('banca reverse 05/1021_f_g2_s05_1026_en_3 --self-test'.split()) == 0
   assert main('banca path 2327 --self-test'.split()) == 0

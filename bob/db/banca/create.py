@@ -105,49 +105,49 @@ def add_protocols(session, verbose):
   protocol_definitions = {}
 
   # Protocol Mc
-  enrol = [1]
+  enroll = [1]
   probe_c = [2, 3, 4]
   probe_i = [1, 2, 3, 4]
-  protocol_definitions['Mc'] = [enrol, probe_c, probe_i]
+  protocol_definitions['Mc'] = [enroll, probe_c, probe_i]
 
   # Protocol Md
-  enrol = [5]
+  enroll = [5]
   probe_c = [6, 7, 8]
   probe_i = [5, 6, 7, 8]
-  protocol_definitions['Md'] = [enrol, probe_c, probe_i]
+  protocol_definitions['Md'] = [enroll, probe_c, probe_i]
 
   # Protocol Ma
-  enrol = [9]
+  enroll = [9]
   probe_c = [10, 11, 12]
   probe_i = [9, 10, 11, 12]
-  protocol_definitions['Ma'] = [enrol, probe_c, probe_i]
+  protocol_definitions['Ma'] = [enroll, probe_c, probe_i]
 
   # Protocol Ud
-  enrol = [1]
+  enroll = [1]
   probe_c = [6, 7, 8]
   probe_i = [5, 6, 7, 8]
-  protocol_definitions['Ud'] = [enrol, probe_c, probe_i]
+  protocol_definitions['Ud'] = [enroll, probe_c, probe_i]
 
   # Protocol Ua
-  enrol = [1]
+  enroll = [1]
   probe_c = [10, 11, 12]
   probe_i = [9, 10, 11, 12]
-  protocol_definitions['Ua'] = [enrol, probe_c, probe_i]
+  protocol_definitions['Ua'] = [enroll, probe_c, probe_i]
 
   # Protocol P
-  enrol = [1]
+  enroll = [1]
   probe_c = [2, 3, 4, 6, 7, 8, 10, 11, 12]
   probe_i = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-  protocol_definitions['P'] = [enrol, probe_c, probe_i]
+  protocol_definitions['P'] = [enroll, probe_c, probe_i]
 
   # Protocol G
-  enrol = [1, 5, 9]
+  enroll = [1, 5, 9]
   probe_c = [2, 3, 4, 6, 7, 8, 10, 11, 12]
   probe_i = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-  protocol_definitions['G'] = [enrol, probe_c, probe_i]
+  protocol_definitions['G'] = [enroll, probe_c, probe_i]
 
   # 2. ADDITIONS TO THE SQL DATABASE
-  protocolPurpose_list = [('world', 'train'), ('dev', 'enrol'), ('dev', 'probe'), ('eval', 'enrol'), ('eval', 'probe')]
+  protocolPurpose_list = [('world', 'train'), ('dev', 'enroll'), ('dev', 'probe'), ('eval', 'enroll'), ('eval', 'probe')]
   for proto in protocol_definitions:
     p = Protocol(proto)
     # Add protocol
@@ -181,7 +181,7 @@ def add_protocols(session, verbose):
         session_list = protocol_definitions[proto][1]
         session_list_i = protocol_definitions[proto][2]
 
-      # Adds 'regular' files (i.e. 'world', 'enrol', 'probe client')
+      # Adds 'regular' files (i.e. 'world', 'enroll', 'probe client')
       if not session_list:
         q = session.query(File).join(Client).filter(Client.sgroup == client_group).\
               order_by(File.id)

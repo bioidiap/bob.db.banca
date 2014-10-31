@@ -309,7 +309,7 @@ class Database(bob.db.verification.utils.SQLiteDatabase, bob.db.verification.uti
       One of the BANCA protocols ('P', 'G', 'Mc', 'Md', 'Ma', 'Ud', 'Ua').
 
     purposes
-      The purposes required to be retrieved ('enrol', 'probe', 'train') or a tuple
+      The purposes required to be retrieved ('enroll', 'probe', 'train') or a tuple
       with several of them. If 'None' is given (this is the default), it is
       considered the same as a tuple with all possible values. This field is
       ignored for the data from the "world" group.
@@ -371,9 +371,9 @@ class Database(bob.db.verification.utils.SQLiteDatabase, bob.db.verification.uti
       retval += list(q)
 
     if ('dev' in groups or 'eval' in groups):
-      if('enrol' in purposes):
+      if('enroll' in purposes):
         q = self.query(File).join(Client).join((ProtocolPurpose, File.protocolPurposes)).join(Protocol).\
-              filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup.in_(groups), ProtocolPurpose.purpose == 'enrol'))
+              filter(and_(Protocol.name.in_(protocol), ProtocolPurpose.sgroup.in_(groups), ProtocolPurpose.purpose == 'enroll'))
         if model_ids:
           q = q.filter(Client.id.in_(model_ids))
         q = q.order_by(File.client_id, File.session_id, File.claimed_id, File.shot_id)
@@ -433,7 +433,7 @@ class Database(bob.db.verification.utils.SQLiteDatabase, bob.db.verification.uti
       tgroups.append('eval')
     if 'eval' in groups:
       tgroups.append('dev')
-    return self.objects(protocol, 'enrol', model_ids, tgroups, 'client', languages)
+    return self.objects(protocol, 'enroll', model_ids, tgroups, 'client', languages)
 
   def zobjects(self, protocol=None, model_ids=None, groups=None, languages=None):
     """Returns a set of Files to perform Z-norm score normalization.
