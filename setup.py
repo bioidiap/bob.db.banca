@@ -55,11 +55,6 @@ setup(
       'bob.db': [
         'banca = bob.db.banca.driver:Interface',
       ],
-
-      # bob unittest declaration
-      'bob.test': [
-        'banca = bob.db.banca.test',
-      ],
     },
 
     classifiers = [
