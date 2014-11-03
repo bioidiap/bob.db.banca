@@ -1,6 +1,6 @@
 .. vim: set fileencoding=utf-8 :
 .. @author: Manuel Guenther <Manuel.Guenther@idiap.ch>
-.. @date:   Thu Dec  6 12:28:25 CET 2012
+.. @date:   Fri Oct 31 16:01:33 CET 2014
 
 ==============
  User's Guide
@@ -21,10 +21,10 @@ These protocols are defined in detail in [Bail2003]_.
 The Database Interface
 ----------------------
 
-The BANCA database complies with the standard biometric verification database as described in :ref:`commons`, implementing both interfaces :py:class:`bob.db.verification.utils.ZTDatabase` and :py:class:`bob.db.verification.utils.SQLiteDatabase`.
+The :py:class:`bob.db.banca.Database` complies with the standard biometric verification database as described in :ref:`commons`, implementing both interfaces :py:class:`bob.db.verification.utils.ZTDatabase` and :py:class:`bob.db.verification.utils.SQLiteDatabase`.
 
 .. todo::
-   Explain the particularities of the BANCA_ database.
+   Explain the particularities of the :py:class:`bob.db.banca.Database` database.
 
 
 .. _banca: http://www.ee.surrey.ac.uk/CVSSP/banca
