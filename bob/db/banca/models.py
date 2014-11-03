@@ -104,6 +104,7 @@ class File(Base, bob.db.verification.utils.File):
 
   # For Python: A direct link to the client object that this file belongs to
   real_client = relationship("Client", backref=backref("files", order_by=id))
+  annotation = relationship("Annotation", backref=backref("file"), uselist=False)
 
   def __init__(self, client_id, path, claimed_id, shot_id, session_id):
     # call base class constructor
