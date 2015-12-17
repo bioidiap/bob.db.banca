@@ -6,7 +6,7 @@
    :target: http://pythonhosted.org/bob.db.banca/index.html
 .. image:: http://img.shields.io/badge/docs-latest-orange.png
    :target: https://www.idiap.ch/software/bob/docs/latest/bioidiap/bob.db.banca/master/index.html
-.. image:: https://travis-ci.org/bioidiap/bob.db.banca.svg?branch=master
+.. image:: https://travis-ci.org/bioidiap/bob.db.banca.svg?branch=v2.0.4
    :target: https://travis-ci.org/bioidiap/bob.db.banca
 .. image:: https://coveralls.io/repos/bioidiap/bob.db.banca/badge.png
    :target: https://coveralls.io/r/bioidiap/bob.db.banca
