@@ -32,7 +32,7 @@ setup(
     name='bob.db.banca',
     version=version,
     description='BANCA Database Access API for Bob',
-    url='https://pypi.python.org/pypi/bob.db.banca',
+    url='https://github.com/bioidiap/bob.db.banca',
     license='GPLv3',
     author='Laurent El Shafey',
     author_email='laurent.el-shafey@idiap.ch',
