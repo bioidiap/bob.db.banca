@@ -2,4 +2,3 @@ setuptools
 six
 bob.io.base
 bob.db.base
-bob.db.verification.utils

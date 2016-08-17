@@ -26,9 +26,10 @@ from bob.db.base.sqlalchemy_migration import Enum, relationship
 from sqlalchemy.orm import backref
 from sqlalchemy.ext.declarative import declarative_base
 
-import bob.db.verification.utils
-
 Base = declarative_base()
+
+import bob.db.base
+
 
 subworld_client_association = Table('subworld_client_association', Base.metadata,
   Column('subworld_id', Integer, ForeignKey('subworld.id')),
@@ -84,7 +85,7 @@ class Subworld(Base):
   def __repr__(self):
     return "Subworld('%s')" % (self.name)
 
-class File(Base, bob.db.verification.utils.File):
+class File(Base, bob.db.base.File):
   """Generic file container"""
 
   __tablename__ = 'file'
@@ -108,7 +109,7 @@ class File(Base, bob.db.verification.utils.File):
 
   def __init__(self, client_id, path, claimed_id, shot_id, session_id):
     # call base class constructor
-    bob.db.verification.utils.File.__init__(self, client_id = client_id, path = path)
+    bob.db.base.File.__init__(self, client_id = client_id, path = path)
 
     self.claimed_id = claimed_id
     self.shot_id = shot_id

@@ -21,7 +21,7 @@ These protocols are defined in detail in [Bail2003]_.
 The Database Interface
 ----------------------
 
-The :py:class:`bob.db.banca.Database` complies with the standard biometric verification database as described in :ref:`commons`, implementing both interfaces :py:class:`bob.db.verification.utils.ZTDatabase` and :py:class:`bob.db.verification.utils.SQLiteDatabase`.
+The :py:class:`bob.db.banca.Database` complies with the standard biometric verification database as described in :ref:`commons`.
 
 .. todo::
    Explain the particularities of the :py:class:`bob.db.banca.Database` database.

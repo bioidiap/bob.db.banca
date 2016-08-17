@@ -46,13 +46,7 @@ setup(
 
     install_requires = install_requires,
 
-
-
     entry_points = {
-      # bob database declaration
-      'bob.db': [
-        'banca = bob.db.banca.driver:Interface',
-      ],
     },
 
     classifiers = [
@@ -62,7 +56,7 @@ setup(
       'Intended Audience :: Developers',
       'Intended Audience :: Education',
       'Intended Audience :: Science/Research',
-      'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+      'License :: OSI Approved :: BSD License',
       'Natural Language :: English',
       'Programming Language :: Python',
       'Programming Language :: Python :: 3',
