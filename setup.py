@@ -47,6 +47,10 @@ setup(
     install_requires = install_requires,
 
     entry_points = {
+       # bob database declaration
+       'bob.db': [
+         'banca = bob.db.banca.driver:Interface',
+       ],
     },
 
     classifiers = [
