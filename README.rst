@@ -2,9 +2,9 @@
 .. Wed 17 Aug 08:26:55 CEST 2016
 
 .. image:: http://img.shields.io/badge/docs-stable-yellow.svg
-   :target: http://pythonhosted.org/bob.db.banca/index.html
+   :target: https://www.idiap.ch/software/bob/docs/bob/bob.db.banca/stable/index.html
 .. image:: http://img.shields.io/badge/docs-latest-orange.svg
-   :target: https://www.idiap.ch/software/bob/docs/latest/bob/bob.db.banca/master/index.html
+   :target: https://www.idiap.ch/software/bob/docs/bob/bob.db.banca/master/index.html
 .. image:: https://gitlab.idiap.ch/bob/bob.db.banca/badges/master/build.svg
    :target: https://gitlab.idiap.ch/bob/bob.db.banca/commits/master
 .. image:: https://gitlab.idiap.ch/bob/bob.db.banca/badges/master/coverage.svg
@@ -12,8 +12,6 @@
 .. image:: https://img.shields.io/badge/gitlab-project-0000c0.svg
    :target: https://gitlab.idiap.ch/bob/bob.db.banca
 .. image:: http://img.shields.io/pypi/v/bob.db.banca.svg
-   :target: https://pypi.python.org/pypi/bob.db.banca
-.. image:: http://img.shields.io/pypi/dm/bob.db.banca.svg
    :target: https://pypi.python.org/pypi/bob.db.banca
 .. image:: https://img.shields.io/badge/original-data--files-a000a0.png
    :target: http://www.ee.surrey.ac.uk/CVSSP/banca
@@ -30,7 +28,7 @@ This package contains an interface for the evaluation protocol of the BANCA data
 Installation
 ------------
 
-Complete Bob's `installation`_ instructions. Then, to install this pacakge,
+Complete Bob's `installation`_ instructions. Then, to install this package,
 run::
 
   $ conda install bob.db.banca
